@@ -1,0 +1,33 @@
+name: Rust checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tested Rust toolchain
+        run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy
+      - name: Check formatting
+        run: cargo +1.99.1 fmt --all -- --check
+      - name: Test workspace
+        run: cargo +1.99.1 test --workspace --locked
+      - name: Lint workspace
+        run: cargo +1.99.1 clippy --workspace --all-targets --locked -- -D warnings
