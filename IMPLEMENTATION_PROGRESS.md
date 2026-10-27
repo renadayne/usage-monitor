@@ -15,7 +15,7 @@ Each accepted step is reviewed, checked and committed independently, then pushed
 | 5a / T04 | Pure Codex hook parser | Accepted | Windows/Linux CI passed; merged via PR #4; separate VS Code/Desktop identifiers and privacy fixtures, no live verification |
 | 2c / T02.2c | Phase-bound inference/model projection | Accepted | Windows/Linux CI passed; merged via PR #5; durable start binding, late-phase/history handling, restart/rollback and Codex-to-store synthetic tests |
 | 5b / T05 | In-memory Codex setup/revert preview | Accepted | Windows/Linux CI passed; merged via PR #8; no provider config writes or trust changes |
-| 5c / T04 | Authenticated Codex loopback intake | Review/CI pending | Bounded queue/body, ACK-after-commit, 429/503, contract/auth/origin tests and explicit shutdown; library only |
-| 5d / T04 | Bounded fail-open Codex hook helper | Pending | No live provider verification or configuration changes |
+| 5c / T04 | Authenticated Codex loopback intake | Accepted | Windows/Linux CI passed; merged via PR #9; bounded queue/body, ACK-after-commit, auth/origin and explicit shutdown tests |
+| 5d / T04 | Bounded fail-open Codex hook helper | Review/CI pending | Stable retry ID/body, metadata filtering before transport, open-stdin deadline test and synthetic helper-to-store roundtrip; no live verification |
 
 Tooling is provisioned locally under ignored `.tools` where required. No provider configuration changes or paid model calls are part of these core steps.

@@ -24,7 +24,9 @@ The `setup-plan` crate creates an in-memory Codex `hooks.json` merge and a manif
 
 The `observer-runtime` library binds only `127.0.0.1`, authenticates each Codex integration, rejects browser origins/foreign hosts and limits metadata bodies to 64 KiB. A bounded writer queue returns 429 when full and 503 when a commit fails or remains unconfirmed. A success response is produced only after durable ingestion commits. The endpoint accepts only the Codex parser's selection/lifecycle contract, with no served-model, phase or activity authority. Its listener/writer have explicit shutdown ownership. This is a library entry point; the desktop launcher and helper are separate steps. API references: [Axum](https://docs.rs/axum/0.8.9/axum/) and [Tokio channels](https://tokio.rs/tokio/tutorial/channels).
 
-Desktop UI/Tauri shell, quota ingestion, OTLP endpoints, the hook helper executable and actual provider setup writes are **not implemented yet**.
+The `aum-observer` executable reads only the explicitly supplied app-owned config and bounded hook stdin, normalizes before transport, and sends the same event/body on at most two loopback attempts. Its main thread waits up to 200 ms from entry, then emits `{}` and exits successfully even when the collector/config/stdin is unavailable. OS process startup is outside that budget. Network attempts share the deadline; payloads are not spooled to disk. Events can be lost while the app is unavailable, so the helper cannot establish target verification or continuous coverage by itself. Tokens live in the app-owned config, not hook command arguments. Build with `cargo build -p observer-helper --release`; invocation is `aum-observer --config <app-owned-config.json>`. Do not point it at provider credential files. Synthetic tests include helper-to-receiver-to-SQLite transport.
+
+Desktop UI/Tauri shell, quota ingestion, OTLP endpoints and actual provider setup writes are **not implemented yet**.
 
 ## Toolchain Prerequisites (Windows)
 

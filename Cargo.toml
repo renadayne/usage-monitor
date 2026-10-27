@@ -8,6 +8,7 @@ members = [
     "crates/usage-accounting",
     "crates/setup-plan",
     "crates/observer-runtime",
+    "crates/observer-helper",
 ]
 
 [workspace.package]
