@@ -10,10 +10,11 @@ Each accepted step is reviewed, checked and committed independently, then pushed
 | 2a / T02.2a | Strict lifecycle schema and read-only paginated queries | Accepted | Windows/Linux CI passed; merged via PR #1 |
 | 2b / T02.2b | Atomic lifecycle ingestion and restart-safe dedupe | Accepted | Windows/Linux CI passed; migration v2, retry/namespace/rollback/phase authority tests merged via PR #2 |
 | 3a / T02.3 | Pure cumulative usage reconciliation | Accepted | Windows/Linux CI passed; merged via PR #6; explicit epochs, baselines, replay/late revisions and decrease freeze |
-| 3b / T02.3 | Durable usage ingestion and scoped totals | Review/CI pending | Migration v4; atomic accounting, canonical-series selection, delta dedupe, trust isolation, separate units/metrics and rollback/restart tests |
+| 3b / T02.3 | Durable usage ingestion and scoped totals | Accepted | Windows/Linux CI passed; merged via PR #7; canonical-series selection, trust isolation, non-addition and atomic rollback/restart tests |
 | 4 / T03 | Pure advisory policy engine | Accepted | Windows/Linux tests, fmt and clippy passed; merged via PR #3; no runtime enforcement |
 | 5a / T04 | Pure Codex hook parser | Accepted | Windows/Linux CI passed; merged via PR #4; separate VS Code/Desktop identifiers and privacy fixtures, no live verification |
 | 2c / T02.2c | Phase-bound inference/model projection | Accepted | Windows/Linux CI passed; merged via PR #5; durable start binding, late-phase/history handling, restart/rollback and Codex-to-store synthetic tests |
-| 5b / T05 | Codex observer transport and setup preview | Pending | No live provider verification or configuration changes |
+| 5b / T05 | In-memory Codex setup/revert preview | Review/CI pending | Exact owned groups, redacted previews, preservation/conflict tests and duplicate-key rejection; no config writes or trust changes |
+| 5c / T04 | Codex observer transport/helper | Pending | No live provider verification or configuration changes |
 
 Tooling is provisioned locally under ignored `.tools` where required. No provider configuration changes or paid model calls are part of these core steps.

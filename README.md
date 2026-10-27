@@ -20,7 +20,9 @@ The pure `usage-accounting` crate reconciles a single cumulative stream per expl
 
 The collector commits usage reports, sample dedupe, checkpoints, accepted contributions and outbox markers together. Local configuration must select one canonical source/series/scope before usage arrives; observer reports cannot change it. Other sources and parent aggregates remain reconciliation evidence. Only direct quantitative evidence contributes; unverified samples cannot poison direct counter order or identity. Session totals remain separate by unit, metric and relationship to totals. Unknown-order snapshots and partial/frozen coverage stay explicit. Source switches, counter mode changes and changed breakdown semantics require reconciliation. There is no price lookup or conversion of credits, percentages or requests into tokens/USD. Time filters describe observed contributions, not provider billing windows.
 
-Desktop UI/Tauri shell, quota ingestion, HTTP/OTLP endpoints and hook receivers are **not implemented yet**.
+The `setup-plan` crate creates an in-memory Codex `hooks.json` merge and a manifest of its exact added groups, then previews a three-way revert that preserves unrelated user edits and reports modified/missing/duplicated group conflicts. Input sizes and helper commands are bounded; ambiguous duplicate JSON keys are rejected. Redacted previews contain event names/counts only. Full config stays in memory and is not logged or saved by this crate. Empty event arrays may remain after revert. Existing matching commands are preserved without claiming ownership or coverage. The future apply layer must protect manifest integrity, verify the current file hash and obtain consent for the concrete diff. Non-managed Codex hooks require review/trust in the client; the planner does not grant trust. Schema reference: [Codex hooks](https://learn.chatgpt.com/docs/hooks).
+
+Desktop UI/Tauri shell, quota ingestion, HTTP/OTLP endpoints, hook receivers and actual provider setup writes are **not implemented yet**.
 
 ## Toolchain Prerequisites (Windows)
 
