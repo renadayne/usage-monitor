@@ -129,7 +129,9 @@ name = "collector"
 version = "0.1.0"
 dependencies = [
  "adapters",
+ "chrono",
  "normalized-schema",
+ "policy-engine",
  "rusqlite",
  "serde",
  "serde_json",
@@ -498,6 +500,7 @@ name = "policy-engine"
 version = "0.1.0"
 dependencies = [
  "normalized-schema",
+ "serde",
 ]
 
 [[package]]

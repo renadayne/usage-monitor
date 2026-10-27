@@ -13,14 +13,16 @@ use usage_accounting::{
     SampleIdentity,
 };
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UsageTotal {
     pub unit: String,
     pub metric: String,
     pub relation_to_total: String,
     pub value: f64,
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UsageSummary {
     pub items: Vec<UsageTotal>,
     pub partial: bool,

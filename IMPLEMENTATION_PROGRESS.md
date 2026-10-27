@@ -16,6 +16,7 @@ Each accepted step is reviewed, checked and committed independently, then pushed
 | 2c / T02.2c | Phase-bound inference/model projection | Accepted | Windows/Linux CI passed; merged via PR #5; durable start binding, late-phase/history handling, restart/rollback and Codex-to-store synthetic tests |
 | 5b / T05 | In-memory Codex setup/revert preview | Accepted | Windows/Linux CI passed; merged via PR #8; no provider config writes or trust changes |
 | 5c / T04 | Authenticated Codex loopback intake | Accepted | Windows/Linux CI passed; merged via PR #9; bounded queue/body, ACK-after-commit, auth/origin and explicit shutdown tests |
-| 5d / T04 | Bounded fail-open Codex hook helper | Review/CI pending | Stable retry ID/body, metadata filtering before transport, open-stdin deadline test and synthetic helper-to-store roundtrip; no live verification |
+| 5d / T04 | Bounded fail-open Codex hook helper | Accepted | Windows/Linux CI passed; merged via PR #10; open-stdin deadline and synthetic helper-to-store roundtrip, no live verification |
+| 6a / T08 | Desktop metadata, policy storage/dry run and CSV export API | Review/CI pending | Bounded policy config, committed proof/phase/clock evaluation, privacy views, 7/30-day export and CSV formula neutralization |
 
 Tooling is provisioned locally under ignored `.tools` where required. No provider configuration changes or paid model calls are part of these core steps.

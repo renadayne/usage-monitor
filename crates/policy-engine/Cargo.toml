@@ -7,3 +7,4 @@ publish = false
 
 [dependencies]
 normalized-schema = { path = "../normalized-schema" }
+serde = { version = "1", features = ["derive"] }

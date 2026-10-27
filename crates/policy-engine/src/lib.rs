@@ -3,22 +3,26 @@
 use std::collections::BTreeSet;
 
 use normalized_schema::{Confidence, ModelEvidenceKind, Phase, Provider};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Action {
     Observe,
     Notify,
     BlockNextTurn,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Scope {
     pub provider: Option<Provider>,
     pub project_key: Option<String>,
     pub session_id: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Policy {
     pub id: String,
     pub scope: Scope,
@@ -67,7 +71,8 @@ pub struct Override {
     pub revoked_at_ms: Option<i64>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Decision {
     Compliant,
     Violation,
@@ -75,7 +80,8 @@ pub enum Decision {
     Indeterminate,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Reason {
     UnassignedPhase,
     InvalidContext,
@@ -90,13 +96,15 @@ pub enum Reason {
     ModelNotAllowed,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Enforcement {
     Advisory,
     Unavailable,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Evaluation {
     pub decision: Decision,
     pub reason: Reason,
