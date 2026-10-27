@@ -4,6 +4,7 @@ use std::fmt;
 
 use chrono::{DateTime, SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
+pub mod quota;
 pub mod usage;
 
 pub const SCHEMA_VERSION: u32 = 1;

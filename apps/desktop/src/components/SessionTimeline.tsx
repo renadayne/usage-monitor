@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Detail, Phase, Session } from '../types';
 import { currentEvaluation } from '../freshness';
+import { QuotaWidgets } from './QuotaWidgets';
 
 export interface SessionTimelineProps {
   session: Session;
@@ -133,6 +134,7 @@ export function SessionTimeline({
               </table>
             )}
           </section>
+          <QuotaWidgets quotas={detail.quotas} clockTrusted={detail.clockTrusted} />
           <section className="session-timeline__events" aria-label="Sự kiện">
             <h3>Dòng thời gian sự kiện</h3>
             {detail.events.length === 0 ? (

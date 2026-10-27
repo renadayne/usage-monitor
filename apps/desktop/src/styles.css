@@ -1172,3 +1172,45 @@ small {
 .event-item details > div {
   color: #687c63;
 }
+.quota-widgets {
+  padding: 20px 0;
+  border-top: 1px solid #e1e8de;
+}
+.quota-note {
+  color: #667b6d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.quota-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 14px;
+}
+.quota-card {
+  padding: 16px;
+  border: 1px solid #dce5d9;
+  border-radius: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.quota-card header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.quota-card dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 13px;
+}
+.quota-card dd {
+  margin: 0;
+  text-align: right;
+}
+.quota-card details {
+  color: #667b6d;
+  font-size: 12px;
+}

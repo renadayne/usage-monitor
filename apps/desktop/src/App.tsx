@@ -40,7 +40,12 @@ export default function App() {
         (s) => s.modelEvidenceExpiresAt && Date.parse(s.modelEvidenceExpiresAt) > Date.now(),
       ) ||
       (detail?.session.modelEvidenceExpiresAt &&
-        Date.parse(detail.session.modelEvidenceExpiresAt) > Date.now()),
+        Date.parse(detail.session.modelEvidenceExpiresAt) > Date.now()) ||
+      detail?.quotas.some((q) =>
+        [q.snapshot.staleAfter, q.snapshot.windowEnd, q.snapshot.resetsAt].some(
+          (t) => t && Date.parse(t) > Date.now(),
+        ),
+      ),
     );
   useEffect(() => {
     if (!needsFreshnessTick) return;
