@@ -6,6 +6,7 @@ version = 4
 name = "adapters"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "normalized-schema",
  "serde",
  "serde_json",

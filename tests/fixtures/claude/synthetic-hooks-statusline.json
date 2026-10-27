@@ -1,0 +1,14 @@
+{
+  "fixtureKind": "synthetic-only",
+  "modelSwitch": {
+    "session_id": "synthetic-session", "hook_event_name": "PostModelSwitch",
+    "to_model": "synthetic-model", "requested_model": "synthetic-alias",
+    "prompt": "PRIVATE_PROMPT_MARKER", "transcript_path": "PRIVATE_PATH_MARKER"
+  },
+  "statusline": {
+    "session_id": "synthetic-session", "model": { "id": "synthetic-model" },
+    "rate_limits": { "five_hour": { "used_percentage": 0, "resets_at": 1793152800 } },
+    "context_window": { "used_percentage": 88, "total_input_tokens": 999999 },
+    "cost": { "total_cost_usd": 999.0 }, "cwd": "PRIVATE_WORKSPACE_MARKER"
+  }
+}
