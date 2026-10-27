@@ -20,6 +20,24 @@ export function currentEvaluation(
   now: number,
   clockTrusted = true,
 ): Evaluation {
+  if (!clockTrusted && evaluation.decision !== 'not_applicable') {
+    return {
+      ...evaluation,
+      decision: 'indeterminate',
+      reason: 'clock_untrusted',
+      shouldNotify: false,
+      selectionMismatchWarning: false,
+    };
+  }
+  if (evaluation.overrideExpiresAtMs != null && now >= evaluation.overrideExpiresAtMs) {
+    return {
+      ...evaluation,
+      decision: 'indeterminate',
+      reason: 'override_expired_refresh_required',
+      shouldNotify: false,
+      selectionMismatchWarning: false,
+    };
+  }
   if (!['compliant', 'violation'].includes(evaluation.decision)) return evaluation;
   const freshness = evidenceFreshness(session, now, clockTrusted);
   if (freshness === 'fresh') return evaluation;

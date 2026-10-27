@@ -45,7 +45,9 @@ export default function App() {
         [q.snapshot.staleAfter, q.snapshot.windowEnd, q.snapshot.resetsAt].some(
           (t) => t && Date.parse(t) > Date.now(),
         ),
-      ),
+      ) ||
+      detail?.overrides.some((o) => !o.revokedAt && Date.parse(o.expiresAt) > Date.now()) ||
+      (detail?.policy.overrideExpiresAtMs && detail.policy.overrideExpiresAtMs > Date.now()),
     );
   useEffect(() => {
     if (!needsFreshnessTick) return;
@@ -398,6 +400,8 @@ export default function App() {
                       </button>
                     </div>
                     <SessionTimeline
+                      client={client}
+                      onOverrideChanged={() => setRefresh((value) => value + 1)}
                       session={detail?.session ?? selected}
                       detail={detail}
                       loading={loading}

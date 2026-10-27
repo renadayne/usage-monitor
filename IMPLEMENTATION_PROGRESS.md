@@ -21,6 +21,7 @@ Each accepted step is reviewed, checked and committed independently, then pushed
 | 6b / T08 | React desktop frontend | Accepted | Rust/frontend CI passed on Windows/Linux; merged via PR #12; explicit isolated demo and browser phase/policy/430px QA |
 | 6c / T08 | Windows Tauri shell, IPC and app-owned profiles | Accepted | All 5 CI jobs passed; Windows executable pair built and archived; merged via PR #13; real GUI/provider verification on user machine pending |
 | 6d / T08 | Expire cached UI evidence and cache native builds | Accepted | All 5 CI jobs passed; merged via PR #14; cached positive decisions downgrade at expiry and clock health stays explicit; native asset rebuild tracking |
-| 7a / T02 | Independent account quota storage and views | Review/CI pending | 8 frontend tests/build passed locally; schema v5, atomic replay/rollback and shared account views covered by synthetic Rust tests; 430px browser QA |
+| 7a / T02 | Independent account quota storage and views | Accepted | All 5 CI jobs passed; merged via PR #15; schema v5, atomic replay/rollback and shared account views covered by synthetic Rust tests; 430px browser QA |
+| 7b / T03 | Audited expiring session/epoch policy exceptions | Review/CI pending | Atomic replacement/revocation, required reason/TTL, clock guard and cached UI expiry; synthetic persistence and authorization tests; no provider enforcement |
 
 Tooling is provisioned locally under ignored `.tools` where required. No provider configuration changes or paid model calls are part of these core steps.

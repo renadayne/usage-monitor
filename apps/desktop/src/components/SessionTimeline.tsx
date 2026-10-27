@@ -2,8 +2,12 @@ import React from 'react';
 import type { Detail, Phase, Session } from '../types';
 import { currentEvaluation } from '../freshness';
 import { QuotaWidgets } from './QuotaWidgets';
+import { OverridePanel } from './OverridePanel';
+import type { Client } from '../client';
 
 export interface SessionTimelineProps {
+  client: Client;
+  onOverrideChanged: () => void;
   session: Session;
   detail: Detail | null;
   loading: boolean;
@@ -22,6 +26,7 @@ const DECISION_LABELS: Record<string, string> = {
 };
 
 const REASON_LABELS: Record<string, string> = {
+  override_expired_refresh_required: 'Ngoại lệ đã hết hạn; đang chờ đánh giá mới',
   unassigned_phase: 'Chưa gán phase cho phiên này',
   missing_served_evidence: 'Chưa có bằng chứng model thực thi',
   no_applicable_policy: 'Không có quy tắc áp dụng',
@@ -37,6 +42,8 @@ const formatLocalTime = (iso: string): string => {
 };
 
 export function SessionTimeline({
+  client,
+  onOverrideChanged,
   session,
   detail,
   loading,
@@ -100,7 +107,7 @@ export function SessionTimeline({
             <details className="policy-details">
               <summary>Chi tiết đánh giá</summary>
               <div>
-                Mã lý do: {detail.policy.reason} · Thực thi: {detail.policy.enforcement}
+                Mã lý do: {evaluation!.reason} · Thực thi: {evaluation!.enforcement}
               </div>
             </details>
           </section>
@@ -135,6 +142,7 @@ export function SessionTimeline({
             )}
           </section>
           <QuotaWidgets quotas={detail.quotas} clockTrusted={detail.clockTrusted} />
+          <OverridePanel key={session.id} client={client} detail={detail} onChanged={onOverrideChanged} />
           <section className="session-timeline__events" aria-label="Sự kiện">
             <h3>Dòng thời gian sự kiện</h3>
             {detail.events.length === 0 ? (

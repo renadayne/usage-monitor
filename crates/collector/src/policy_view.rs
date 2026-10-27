@@ -82,7 +82,11 @@ impl Store {
             &self.list_policies()?,
             &context,
             evidence.as_ref(),
-            &[],
+            &self.active_overrides(
+                session,
+                context.phase_epoch,
+                &normalized_schema::format_canonical_utc(now),
+            )?,
             now.timestamp_millis(),
         ))
     }

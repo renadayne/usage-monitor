@@ -43,3 +43,11 @@ it('expires cached positive policy state at the evidence boundary without waitin
       .decision,
   ).toBe('indeterminate');
 });
+
+it('invalidates a cached evaluation at override expiry even when served evidence has a longer TTL', () => {
+  const expiry = Date.parse('2026-10-28T00:00:30Z');
+  const cached = { ...evaluation, overrideExpiresAtMs: expiry };
+  expect(currentEvaluation(cached, session, expiry - 1).decision).toBe('compliant');
+  expect(currentEvaluation(cached, session, expiry).decision).toBe('indeterminate');
+  expect(currentEvaluation(cached, session, expiry).reason).toBe('override_expired_refresh_required');
+});

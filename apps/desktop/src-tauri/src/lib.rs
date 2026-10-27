@@ -74,6 +74,23 @@ impl DesktopService {
             .save_policy(policy)
             .map_err(|_| "Policy không hợp lệ hoặc chưa lưu được.")
     }
+    pub fn create_override(
+        &mut self,
+        request: &collector::overrides::OverrideRequest,
+    ) -> Result<(), &'static str> {
+        let (now, trusted) = self.time();
+        self.store
+            .create_override(request, &now, trusted)
+            .map_err(|_| {
+                "Không tạo được ngoại lệ. Kiểm tra phase, policy, model, lý do và thời hạn."
+            })
+    }
+    pub fn revoke_override(&mut self, id: &str, session: &str) -> Result<(), &'static str> {
+        let (now, _) = self.time();
+        self.store
+            .revoke_override(id, session, &now)
+            .map_err(|_| "Không thu hồi được ngoại lệ của phiên này.")
+    }
     pub fn change_phase(
         &mut self,
         id: &str,

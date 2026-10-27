@@ -126,6 +126,7 @@ impl Store {
         )?;
         let provider = serde_json::from_value(provider.into())?;
         let quotas = self.account_quotas(provider, &account, now, clock_trusted)?;
+        let overrides = self.override_history(session)?;
         tx.commit()?;
         Ok(SessionDetail {
             clock_trusted,
@@ -136,6 +137,7 @@ impl Store {
             usage,
             policy,
             quotas,
+            overrides,
         })
     }
 
@@ -267,6 +269,7 @@ pub struct SessionDetail {
     pub usage: crate::usage::UsageSummary,
     pub policy: policy_engine::Evaluation,
     pub quotas: Vec<crate::quota::AccountQuota>,
+    pub overrides: Vec<crate::overrides::OverrideRecord>,
 }
 
 #[derive(Debug, Serialize)]

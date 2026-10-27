@@ -8,6 +8,7 @@ import type {
   SetupInfo,
   SetupPreview,
   Snapshot,
+  OverrideRequest,
 } from './types';
 
 export interface Client {
@@ -17,6 +18,8 @@ export interface Client {
   changePhase(sessionId: string, expectedEpoch: number, phase: Phase): Promise<void>;
   policies(): Promise<Policy[]>;
   savePolicy(policy: Policy): Promise<void>;
+  createOverride(request: OverrideRequest): Promise<void>;
+  revokeOverride(id: string, sessionId: string): Promise<void>;
   setupInfo(): Promise<SetupInfo>;
   previewSetup(currentJson: string, helperCommand: string): Promise<SetupPreview>;
   exportHistory(days: 7 | 30): Promise<{ csv: string; rows: number; truncated: boolean }>;
@@ -30,6 +33,8 @@ export const nativeClient: Client = {
     invoke('change_phase', { sessionId, expectedEpoch, phase }),
   policies: () => invoke('list_policies'),
   savePolicy: (policy) => invoke('save_policy', { policy }),
+  createOverride: (request) => invoke('create_override', { request }),
+  revokeOverride: (id, sessionId) => invoke('revoke_override', { id, sessionId }),
   setupInfo: () => invoke('setup_info'),
   previewSetup: (currentJson, helperCommand) => invoke('preview_setup', { currentJson, helperCommand }),
   exportHistory: (days) => invoke('export_history', { days }),
@@ -130,6 +135,7 @@ export function createDemoClient(): Client {
         events: events.get(sessionId) ?? [],
         nextCursor: null,
         usage: { items: [], partial: true },
+        overrides: [],
         clockTrusted: true,
         quotas: ['five_hour', 'seven_day'].map((windowKey, index) => ({
           snapshot: {
@@ -199,6 +205,12 @@ export function createDemoClient(): Client {
     },
     async setupInfo() {
       return { helperExecutable: '', helperExists: false, profiles: [] };
+    },
+    async createOverride() {
+      throw new Error('Mở bản desktop để tạo ngoại lệ policy.');
+    },
+    async revokeOverride() {
+      throw new Error('Mở bản desktop để thu hồi ngoại lệ policy.');
     },
     async previewSetup() {
       throw new Error('Mở ứng dụng desktop để tạo bản đề xuất cấu hình.');
