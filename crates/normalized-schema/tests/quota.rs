@@ -152,15 +152,13 @@ fn quota_dto_enforces_percentage_only_without_deriving_or_converting_values() {
     assert_eq!(pct_only.remaining, None);
     assert_eq!(pct_only.resets_at, None);
 
-    for (setter_name, mutate) in [
-        ("used", |s: &mut QuotaSnapshot| s.used = Some(62.5)),
-        ("limit", |s: &mut QuotaSnapshot| s.limit = Some(100.0)),
-        ("remaining", |s: &mut QuotaSnapshot| {
-            s.remaining = Some(37.5)
-        }),
-    ] {
+    for setter_name in ["used", "limit", "remaining"] {
         let mut invalid = pct_only.clone();
-        mutate(&mut invalid);
+        match setter_name {
+            "used" => invalid.used = Some(62.5),
+            "limit" => invalid.limit = Some(100.0),
+            _ => invalid.remaining = Some(37.5),
+        }
         assert!(
             matches!(invalid.validate(), Err(QuotaError::InvalidQuota(_))),
             "expected percentage unit with {setter_name} to fail"
