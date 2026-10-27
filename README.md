@@ -3,13 +3,14 @@
 ## Current Implementation Status
 
 The Rust workspace currently includes:
-- Initial 10-table SQLite schema (`crates/collector/migrations/0001_initial.sql`) managed via `PRAGMA user_version = 1`.
+- Versioned SQLite migrations through `user_version = 2`, including projection backfill for existing v1 sessions.
 - Connection configuration and verification (`foreign_keys = ON`, `journal_mode = WAL`, `synchronous = FULL`, bounded `busy_timeout`).
 - Safe refusal of unknown future `user_version` databases and non-empty unversioned databases prior to journal or schema mutation.
 - A strict lifecycle/model-evidence DTO crate (`normalized-schema`). Unknown content, usage and quota fields are rejected in this stage. Served-model claims require direct response evidence, an inference ID and phase epoch.
 - Bounded read-only session/timeline queries with keyset cursors. Timeline results exclude raw payload JSON and workspace paths. Storage time formatting uses fixed-width UTC nanoseconds for stable ordering.
+- Lifecycle ingestion for `session.started`, `session.ended` and explicit local phase changes. Integration/account bindings are immutable. Event, snapshot, checkpoint and outbox writes commit together; retries ignore only receipt time and conflicting event content is rejected.
 
-Atomic event ingestion, desktop UI/Tauri shell, HTTP/OTLP endpoints, hook receivers, policy evaluation, and provider adapters are **not implemented yet**.
+Inference/model projection, usage accounting, desktop UI/Tauri shell, HTTP/OTLP endpoints, hook receivers, policy evaluation, and provider adapters are **not implemented yet**. Unsupported event types are rejected explicitly. Observer ingestion cannot change phase; the local user-action API is a separate entry point.
 
 ## Toolchain Prerequisites (Windows)
 

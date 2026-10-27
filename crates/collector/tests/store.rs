@@ -342,3 +342,76 @@ fn rejects_missing_parent_directory_and_in_memory_paths() {
         "expected InvalidDatabasePath, got: {mem_err:?}"
     );
 }
+
+#[test]
+fn migrates_existing_v1_database_preserving_sessions_and_backfilling_projection() {
+    let temp_dir = TempDir::new().expect("create temp dir");
+    let db_path = temp_dir.path().join("v1_to_v2.sqlite3");
+
+    {
+        let conn = Connection::open(&db_path).expect("open raw connection for v1 setup");
+        conn.pragma_update(None, "foreign_keys", "ON")
+            .expect("enable foreign_keys");
+        conn.execute_batch(include_str!("../migrations/0001_initial.sql"))
+            .expect("apply v1 schema");
+        conn.pragma_update(None, "user_version", 1)
+            .expect("set user_version = 1");
+
+        conn.execute(
+            "INSERT INTO integrations (
+                id, provider, surface, account_key, capabilities_json, health, enabled
+             ) VALUES (
+                'int-v1', 'codex', 'cli', 'acct-v1', '[]', 'unknown', 1
+             )",
+            [],
+        )
+        .expect("insert v1 integration");
+
+        conn.execute(
+            "INSERT INTO sessions (
+                id, integration_id, source_session_id, started_at, updated_at,
+                activity, model_evidence_kind, phase, phase_epoch
+             ) VALUES (
+                'sess-v1-1', 'int-v1', 'src-v1-1',
+                '2026-10-27T01:00:00.000000000Z', '2026-10-27T01:05:00.000000000Z',
+                'WORKING', 'unknown', 'IMPLEMENTATION', 2
+             )",
+            [],
+        )
+        .expect("insert v1 session");
+    }
+
+    let store = Store::open(&db_path).expect("migrate v1 store to v2");
+    assert_eq!(
+        store
+            .schema_version()
+            .expect("read migrated schema version"),
+        CURRENT_SCHEMA_VERSION
+    );
+    let expected: Vec<String> = EXPECTED_TABLES.iter().map(|s| (*s).to_string()).collect();
+    assert_eq!(store.table_names().expect("read table names"), expected);
+
+    let verify_conn = Connection::open(&db_path).expect("open verification connection");
+    let (phase, epoch): (String, i64) = verify_conn
+        .query_row(
+            "SELECT phase, phase_epoch FROM sessions WHERE id = 'sess-v1-1'",
+            [],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .expect("read preserved v1 session");
+    assert_eq!(phase, "IMPLEMENTATION");
+    assert_eq!(epoch, 2);
+
+    let (activity_source, activity_sequence, phase_changed_at): (String, Option<i64>, String) =
+        verify_conn
+            .query_row(
+                "SELECT activity_source, activity_sequence, phase_changed_at \
+                 FROM session_projection WHERE session_id = 'sess-v1-1'",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            )
+            .expect("read backfilled session_projection row");
+    assert_eq!(activity_source, "legacy");
+    assert_eq!(activity_sequence, None);
+    assert_eq!(phase_changed_at, "2026-10-27T01:05:00.000000000Z");
+}
