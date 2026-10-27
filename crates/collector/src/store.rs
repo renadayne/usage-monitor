@@ -138,7 +138,7 @@ impl From<rusqlite::Error> for StoreError {
 #[derive(Debug)]
 pub struct Store {
     path: PathBuf,
-    conn: Connection,
+    pub(crate) conn: Connection,
 }
 
 impl Store {

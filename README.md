@@ -1,13 +1,15 @@
 # Agent Usage Monitor
 
-## Current Implementation Status (Step T02.1)
+## Current Implementation Status
 
-Only the Rust workspace and durable SQLite store bootstrap (`crates/collector`) are implemented in this step:
+The Rust workspace currently includes:
 - Initial 10-table SQLite schema (`crates/collector/migrations/0001_initial.sql`) managed via `PRAGMA user_version = 1`.
 - Connection configuration and verification (`foreign_keys = ON`, `journal_mode = WAL`, `synchronous = FULL`, bounded `busy_timeout`).
 - Safe refusal of unknown future `user_version` databases and non-empty unversioned databases prior to journal or schema mutation.
+- A strict lifecycle/model-evidence DTO crate (`normalized-schema`). Unknown content, usage and quota fields are rejected in this stage. Served-model claims require direct response evidence, an inference ID and phase epoch.
+- Bounded read-only session/timeline queries with keyset cursors. Timeline results exclude raw payload JSON and workspace paths. Storage time formatting uses fixed-width UTC nanoseconds for stable ordering.
 
-Desktop UI/Tauri shell, HTTP/OTLP ingestion endpoints, hook receivers, policy evaluation, and provider adapters are **not implemented yet**.
+Atomic event ingestion, desktop UI/Tauri shell, HTTP/OTLP endpoints, hook receivers, policy evaluation, and provider adapters are **not implemented yet**.
 
 ## Toolchain Prerequisites (Windows)
 
@@ -34,3 +36,5 @@ The current Windows build was checked with Rust 1.99.1 and LLVM-MinGW MSVCRT. De
 The helper configures only its process environment; it does not install tools or change the system PATH. Normal installed toolchains can use the `cargo` commands directly. Setup references: [Rust installation](https://rust-lang.org/tools/install/) and [rusqlite](https://docs.rs/rusqlite/0.37.0/rusqlite/).
 
 Design documents and the original archive are intentionally excluded from the public repository. All current tests use synthetic local databases; no provider integration or live usage has been verified.
+
+Local Windows Application Control can reject newly compiled build/test executables (`os error 4551`). The project does not modify or bypass that policy. When this occurs, the Windows/Linux GitHub CI results provide validation before the step is accepted on `main`.
