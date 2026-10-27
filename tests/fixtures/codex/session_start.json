@@ -1,0 +1,12 @@
+{
+  "_fixture": "synthetic",
+  "hook_event_name": "SessionStart",
+  "session_id": "sess_synth_codex_001",
+  "model": "gpt-5-codex",
+  "cwd": "D:/FAKE_SECRET_WORKSPACE/project-alpha",
+  "transcript_path": "C:/Users/fakeuser/.codex/transcripts/FAKE_TRANSCRIPT_PATH_001.jsonl",
+  "transcriptPath": "C:/Users/fakeuser/.codex/transcripts/FAKE_CAMEL_TRANSCRIPT_PATH_001.jsonl",
+  "prompt": "FAKE_PROMPT_DO_NOT_LEAK_EXPLAIN_PRIVATE_KEY",
+  "response": "FAKE_RESPONSE_DO_NOT_LEAK_ASSISTANT_OUTPUT",
+  "code": "const FAKE_CODE_SNIPPET_SECRET = 'sk-fake-1234567890';"
+}

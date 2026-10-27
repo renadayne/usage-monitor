@@ -12,7 +12,9 @@ The Rust workspace currently includes:
 
 The independent `policy-engine` crate evaluates advisory rules with scope/priority precedence, tied-rule intersection and expiring session/phase-scoped overrides. Matching selection metadata stays indeterminate; only fresh served proof bound to the same provider/session/phase/epoch can establish compliance or violation. Requests to block are reported as enforcement unavailable. This pure engine has no provider-call control or persisted notification wiring yet.
 
-Inference/model projection, usage accounting, desktop UI/Tauri shell, HTTP/OTLP endpoints, hook receivers, and provider adapters are **not implemented yet**. Unsupported event types are rejected explicitly. Observer ingestion cannot change phase; the local user-action API is a separate entry point.
+The `adapters` crate contains a pure Codex hook parser with synthetic fixtures for separate VS Code and Desktop surface identifiers. It discards content/path fields, preserves common hook model metadata as selection evidence and rejects subagent hooks whose parent session cannot safely identify the child. It performs no file/network I/O or provider configuration changes. The parser is not wired to ingestion yet: the current collector rejects model metadata until model projection is implemented.
+
+Inference/model projection, usage accounting, desktop UI/Tauri shell, HTTP/OTLP endpoints and hook receivers are **not implemented yet**. Unsupported event types are rejected explicitly. Observer ingestion cannot change phase; the local user-action API is a separate entry point.
 
 ## Toolchain Prerequisites (Windows)
 
@@ -23,7 +25,7 @@ Building `rusqlite` with `bundled` SQLite on Windows requires a Rust stable tool
 ## Verification Commands
 
 ```powershell
-cargo test -p collector
+cargo test --workspace --locked
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 ```
