@@ -22,7 +22,9 @@ The collector commits usage reports, sample dedupe, checkpoints, accepted contri
 
 The `setup-plan` crate creates an in-memory Codex `hooks.json` merge and a manifest of its exact added groups, then previews a three-way revert that preserves unrelated user edits and reports modified/missing/duplicated group conflicts. Input sizes and helper commands are bounded; ambiguous duplicate JSON keys are rejected. Redacted previews contain event names/counts only. Full config stays in memory and is not logged or saved by this crate. Empty event arrays may remain after revert. Existing matching commands are preserved without claiming ownership or coverage. The future apply layer must protect manifest integrity, verify the current file hash and obtain consent for the concrete diff. Non-managed Codex hooks require review/trust in the client; the planner does not grant trust. Schema reference: [Codex hooks](https://learn.chatgpt.com/docs/hooks).
 
-Desktop UI/Tauri shell, quota ingestion, HTTP/OTLP endpoints, hook receivers and actual provider setup writes are **not implemented yet**.
+The `observer-runtime` library binds only `127.0.0.1`, authenticates each Codex integration, rejects browser origins/foreign hosts and limits metadata bodies to 64 KiB. A bounded writer queue returns 429 when full and 503 when a commit fails or remains unconfirmed. A success response is produced only after durable ingestion commits. The endpoint accepts only the Codex parser's selection/lifecycle contract, with no served-model, phase or activity authority. Its listener/writer have explicit shutdown ownership. This is a library entry point; the desktop launcher and helper are separate steps. API references: [Axum](https://docs.rs/axum/0.8.9/axum/) and [Tokio channels](https://tokio.rs/tokio/tutorial/channels).
+
+Desktop UI/Tauri shell, quota ingestion, OTLP endpoints, the hook helper executable and actual provider setup writes are **not implemented yet**.
 
 ## Toolchain Prerequisites (Windows)
 
