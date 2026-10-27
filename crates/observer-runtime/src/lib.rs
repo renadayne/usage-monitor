@@ -54,6 +54,9 @@ impl ObserverBinding {
         }
         normalized_schema::validate_identifier("integrationId", &integration_id)
             .map_err(|_| "invalid integration identity")?;
+        if !integration_id.is_ascii() {
+            return Err("observer HTTP integration identity must be ASCII");
+        }
         normalized_schema::validate_identifier("accountKey", &account_key)
             .map_err(|_| "invalid account identity")?;
         Ok(Self {
