@@ -1,0 +1,12 @@
+{
+  "_fixture": "synthetic",
+  "hook_event_name": "SubagentStart",
+  "session_id": "sess_synth_parent_ambiguous_001",
+  "model": "gpt-5-codex",
+  "cwd": "/workspace/FAKE_SECRET_CWD_MARKER",
+  "transcript_path": "/tmp/FAKE_TRANSCRIPT_PATH_MARKER.jsonl",
+  "transcriptPath": "/tmp/FAKE_CAMEL_TRANSCRIPT_PATH_MARKER.jsonl",
+  "prompt": "FAKE_SUBAGENT_PROMPT_MARKER",
+  "response": "FAKE_SUBAGENT_RESPONSE_MARKER",
+  "code": "fn fake_subagent_code_marker() {}"
+}

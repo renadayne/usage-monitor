@@ -4,6 +4,7 @@ members = [
     "crates/collector",
     "crates/normalized-schema",
     "crates/policy-engine",
+    "crates/adapters",
 ]
 
 [workspace.package]
