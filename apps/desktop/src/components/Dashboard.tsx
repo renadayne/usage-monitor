@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import type { Integration, Session, Snapshot } from '../types';
+import { evidenceFreshness } from '../freshness';
 
 export interface DashboardProps {
   snapshot: Snapshot;
@@ -28,16 +29,15 @@ const surfaceName = (value: string | undefined): string =>
       ? 'Codex · Desktop'
       : (value ?? 'Chưa rõ nguồn');
 
-const getEvidenceFreshness = (s: Session, generatedAt: string) => {
-  const obs = s.modelObservedAt ? Date.parse(s.modelObservedAt) : NaN;
-  const exp = s.modelEvidenceExpiresAt ? Date.parse(s.modelEvidenceExpiresAt) : NaN;
-  const gen = generatedAt ? Date.parse(generatedAt) : NaN;
-  if (Number.isNaN(obs) || Number.isNaN(exp) || Number.isNaN(gen) || obs > gen) {
-    return { badgeClass: 'badge badge--warning badge--freshness-unknown', label: 'Độ mới chưa rõ' };
+const getEvidenceFreshness = (s: Session, clockTrusted?: boolean) => {
+  switch (evidenceFreshness(s, Date.now(), clockTrusted)) {
+    case 'fresh':
+      return { badgeClass: 'badge badge--fresh', label: 'Còn hạn' };
+    case 'expired':
+      return { badgeClass: 'badge badge--stale', label: 'Đã cũ' };
+    default:
+      return { badgeClass: 'badge badge--warning badge--freshness-unknown', label: 'Độ mới chưa rõ' };
   }
-  return gen >= exp
-    ? { badgeClass: 'badge badge--stale', label: 'Đã cũ' }
-    : { badgeClass: 'badge badge--fresh', label: 'Còn hạn' };
 };
 
 const formatActivity = (activity: string): string => (activity === 'UNKNOWN' ? 'Chưa rõ' : activity);
@@ -162,7 +162,7 @@ export function Dashboard({ snapshot, selectedId, onSelect, onRefresh, onSetup }
         <ul className="session-list" aria-label="Danh sách phiên">
           {filteredSessions.map((s) => {
             const integ = integrationById.get(s.integrationId);
-            const freshness = getEvidenceFreshness(s, snapshot.generatedAt);
+            const freshness = getEvidenceFreshness(s, snapshot.clockTrusted);
             const isSelected = selectedId === s.id;
             const servedValue = isServedEvidence(s) ? s.modelObserved! : 'Chưa có dữ liệu';
             const verifiedLabel =

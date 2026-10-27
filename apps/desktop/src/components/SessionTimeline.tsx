@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Detail, Phase, Session } from '../types';
+import { currentEvaluation } from '../freshness';
 
 export interface SessionTimelineProps {
   session: Session;
@@ -43,6 +44,9 @@ export function SessionTimeline({
   onLoadMore,
 }: SessionTimelineProps) {
   const selectId = `phase-select-${session.id}`;
+  const evaluation = detail
+    ? currentEvaluation(detail.policy, session, Date.now(), detail.clockTrusted)
+    : null;
   return (
     <section className="session-timeline" aria-label="Chi tiết phiên">
       <header className="session-timeline__header">
@@ -83,11 +87,11 @@ export function SessionTimeline({
         <>
           <section className="session-timeline__policy" aria-label="Chính sách">
             <h3>Chính sách</h3>
-            <div className={`policy-decision policy-decision--${detail.policy.decision}`}>
-              <strong>{DECISION_LABELS[detail.policy.decision] ?? detail.policy.decision}</strong>
-              <span> · {REASON_LABELS[detail.policy.reason] ?? detail.policy.reason}</span>
+            <div className={`policy-decision policy-decision--${evaluation!.decision}`}>
+              <strong>{DECISION_LABELS[evaluation!.decision] ?? evaluation!.decision}</strong>
+              <span> · {REASON_LABELS[evaluation!.reason] ?? evaluation!.reason}</span>
             </div>
-            {detail.policy.selectionMismatchWarning && (
+            {evaluation!.selectionMismatchWarning && (
               <div className="alert alert--warning" role="status">
                 Cảnh báo lệch model đã chọn so với quy tắc phase.
               </div>

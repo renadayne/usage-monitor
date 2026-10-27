@@ -1,4 +1,4 @@
-name: Rust checks
+name: Workspace checks
 
 on:
   push:
@@ -31,6 +31,15 @@ jobs:
           npm run build
       - name: Install tested native Rust toolchain
         run: rustup toolchain install 1.99.1 --profile minimal
+      - name: Restore native build cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target/release
+          key: windows-native-1.99.1-${{ hashFiles('Cargo.lock') }}
+          restore-keys: windows-native-1.99.1-
       - name: Build native shell and hook helper
         run: cargo +1.99.1 build -p usage-monitor-desktop -p observer-helper --release --features usage-monitor-desktop/desktop-shell,usage-monitor-desktop/custom-protocol --locked
       - name: Upload portable executables
