@@ -10,7 +10,9 @@ The Rust workspace currently includes:
 - Bounded read-only session/timeline queries with keyset cursors. Timeline results exclude raw payload JSON and workspace paths. Storage time formatting uses fixed-width UTC nanoseconds for stable ordering.
 - Lifecycle ingestion for `session.started`, `session.ended` and explicit local phase changes. Integration/account bindings are immutable. Event, snapshot, checkpoint and outbox writes commit together; retries ignore only receipt time and conflicting event content is rejected.
 
-Inference/model projection, usage accounting, desktop UI/Tauri shell, HTTP/OTLP endpoints, hook receivers, policy evaluation, and provider adapters are **not implemented yet**. Unsupported event types are rejected explicitly. Observer ingestion cannot change phase; the local user-action API is a separate entry point.
+The independent `policy-engine` crate evaluates advisory rules with scope/priority precedence, tied-rule intersection and expiring session/phase-scoped overrides. Matching selection metadata stays indeterminate; only fresh served proof bound to the same provider/session/phase/epoch can establish compliance or violation. Requests to block are reported as enforcement unavailable. This pure engine has no provider-call control or persisted notification wiring yet.
+
+Inference/model projection, usage accounting, desktop UI/Tauri shell, HTTP/OTLP endpoints, hook receivers, and provider adapters are **not implemented yet**. Unsupported event types are rejected explicitly. Observer ingestion cannot change phase; the local user-action API is a separate entry point.
 
 ## Toolchain Prerequisites (Windows)
 
