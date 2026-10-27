@@ -4,8 +4,8 @@ Each accepted step is reviewed, checked and committed independently, then pushed
 
 | Step | Scope | Status | Evidence |
 |---|---|---|---|
-| 0 | Git bootstrap and implementation workflow | Accepted | Local Git initialized; design documents retained locally pending explicit public-publication approval |
-| 1 / T02.1 | Rust workspace, SQLite migration and file-backed store | In progress | Antigravity implementation, Tech Lead review and runtime checks pending |
+| 0 | Git bootstrap and implementation workflow | Accepted | Local Git initialized; design documents intentionally retained locally per user instruction |
+| 1 / T02.1 | Rust workspace, SQLite migration and file-backed store | Accepted | 7 file-backed tests passed; fmt and clippy checks passed on Windows Rust 1.99.1 |
 | 2 / T02.2 | Atomic event ingestion and restart-safe dedupe | Pending | No implementation claim |
 | 3 / T02.3 | Usage reconciliation and session query | Pending | No implementation claim |
 | 4 / T03 | Advisory policy | Pending | No runtime enforcement claim |
