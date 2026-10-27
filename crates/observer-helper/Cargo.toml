@@ -1,0 +1,24 @@
+[package]
+name = "observer-helper"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[[bin]]
+name = "aum-observer"
+path = "src/main.rs"
+
+[dependencies]
+adapters = { path = "../adapters" }
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+normalized-schema = { path = "../normalized-schema" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "3"
+collector = { path = "../collector" }
+observer-runtime = { path = "../observer-runtime" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
