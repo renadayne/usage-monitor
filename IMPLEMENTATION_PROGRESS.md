@@ -9,10 +9,11 @@ Each accepted step is reviewed, checked and committed independently, then pushed
 | 1a | Windows/Linux GitHub CI | Accepted | Both platforms passed tests, formatting and clippy for the store bootstrap |
 | 2a / T02.2a | Strict lifecycle schema and read-only paginated queries | Accepted | Windows/Linux CI passed; merged via PR #1 |
 | 2b / T02.2b | Atomic lifecycle ingestion and restart-safe dedupe | Accepted | Windows/Linux CI passed; migration v2, retry/namespace/rollback/phase authority tests merged via PR #2 |
-| 3 / T02.3 | Usage reconciliation and session query | Pending | No implementation claim |
+| 3a / T02.3 | Pure cumulative usage reconciliation | Review/CI pending | Explicit epoch, baseline on mid-counter attachment, replay/late revisions, decrease freeze and finite arithmetic; persistence not wired yet |
+| 3b / T02.3 | Durable usage ingestion and scoped totals | Pending | No implementation claim |
 | 4 / T03 | Pure advisory policy engine | Accepted | Windows/Linux tests, fmt and clippy passed; merged via PR #3; no runtime enforcement |
 | 5a / T04 | Pure Codex hook parser | Accepted | Windows/Linux CI passed; merged via PR #4; separate VS Code/Desktop identifiers and privacy fixtures, no live verification |
-| 2c / T02.2c | Phase-bound inference/model projection | Review/CI pending | Migration v3, separate model channels, durable start binding, late-phase/history handling, restart/rollback and Codex-to-store synthetic tests |
+| 2c / T02.2c | Phase-bound inference/model projection | Accepted | Windows/Linux CI passed; merged via PR #5; durable start binding, late-phase/history handling, restart/rollback and Codex-to-store synthetic tests |
 | 5b / T05 | Codex observer transport and setup preview | Pending | No live provider verification or configuration changes |
 
 Tooling is provisioned locally under ignored `.tools` where required. No provider configuration changes or paid model calls are part of these core steps.

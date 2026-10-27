@@ -16,7 +16,9 @@ The `adapters` crate contains a pure Codex hook parser with synthetic fixtures f
 
 Model projection keeps selected, requested, resolved and served fields separate. Served snapshots require a matching durable inference start in the same source/session/phase/epoch. Old-phase, expired, unsequenced updates and competing sources remain historical when they cannot safely replace a head. A first observation can establish a head; replacing it requires increasing source sequence and nondecreasing observation time. Changing phase clears current model fields while retaining history. Turn/inference events are retained without guessing idle from completion or silence. Observer ingestion cannot change phase; the local user-action API is a separate entry point.
 
-Usage accounting, desktop UI/Tauri shell, HTTP/OTLP endpoints and hook receivers are **not implemented yet**.
+The pure `usage-accounting` crate reconciles a single cumulative stream per explicit epoch. Mid-counter attachment establishes a baseline, repeated/older revisions add nothing, and a newer decrease freezes that epoch until an explicit new epoch is selected. All values and arithmetic must stay finite and nonnegative. It does not select canonical series or persist usage yet; callers must retain checkpoints per complete integration/account/counter/scope/series/unit/metric/epoch identity and never add overlapping sources or parent/child aggregates.
+
+Durable usage ingestion, desktop UI/Tauri shell, HTTP/OTLP endpoints and hook receivers are **not implemented yet**.
 
 ## Toolchain Prerequisites (Windows)
 
