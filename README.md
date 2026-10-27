@@ -3,7 +3,7 @@
 ## Current Implementation Status
 
 The Rust workspace currently includes:
-- Versioned SQLite migrations through `user_version = 2`, including projection backfill for existing v1 sessions.
+- Versioned SQLite migrations through `user_version = 3`, preserving older sessions and adding phase-bound inference contexts and independent model projection checkpoints.
 - Connection configuration and verification (`foreign_keys = ON`, `journal_mode = WAL`, `synchronous = FULL`, bounded `busy_timeout`).
 - Safe refusal of unknown future `user_version` databases and non-empty unversioned databases prior to journal or schema mutation.
 - A strict lifecycle/model-evidence DTO crate (`normalized-schema`). Unknown content, usage and quota fields are rejected in this stage. Served-model claims require direct response evidence, an inference ID and phase epoch.
@@ -12,9 +12,11 @@ The Rust workspace currently includes:
 
 The independent `policy-engine` crate evaluates advisory rules with scope/priority precedence, tied-rule intersection and expiring session/phase-scoped overrides. Matching selection metadata stays indeterminate; only fresh served proof bound to the same provider/session/phase/epoch can establish compliance or violation. Requests to block are reported as enforcement unavailable. This pure engine has no provider-call control or persisted notification wiring yet.
 
-The `adapters` crate contains a pure Codex hook parser with synthetic fixtures for separate VS Code and Desktop surface identifiers. It discards content/path fields, preserves common hook model metadata as selection evidence and rejects subagent hooks whose parent session cannot safely identify the child. It performs no file/network I/O or provider configuration changes. The parser is not wired to ingestion yet: the current collector rejects model metadata until model projection is implemented.
+The `adapters` crate contains a pure Codex hook parser with synthetic fixtures for separate VS Code and Desktop surface identifiers. It discards content/path fields, preserves common hook model metadata as selection evidence and rejects subagent hooks whose parent session cannot safely identify the child. It performs no file/network I/O or provider configuration changes. Parsed lifecycle/model metadata can be ingested; an integration test covers the synthetic parser-to-store path.
 
-Inference/model projection, usage accounting, desktop UI/Tauri shell, HTTP/OTLP endpoints and hook receivers are **not implemented yet**. Unsupported event types are rejected explicitly. Observer ingestion cannot change phase; the local user-action API is a separate entry point.
+Model projection keeps selected, requested, resolved and served fields separate. Served snapshots require a matching durable inference start in the same source/session/phase/epoch. Old-phase, expired, unsequenced updates and competing sources remain historical when they cannot safely replace a head. A first observation can establish a head; replacing it requires increasing source sequence and nondecreasing observation time. Changing phase clears current model fields while retaining history. Turn/inference events are retained without guessing idle from completion or silence. Observer ingestion cannot change phase; the local user-action API is a separate entry point.
+
+Usage accounting, desktop UI/Tauri shell, HTTP/OTLP endpoints and hook receivers are **not implemented yet**.
 
 ## Toolchain Prerequisites (Windows)
 

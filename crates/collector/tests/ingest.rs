@@ -204,10 +204,10 @@ fn invalid_unsupported_and_rebound_events_have_no_side_effects() {
     invalid.source_inference_id = Some("inference".into());
     assert!(matches!(
         store.ingest(&invalid),
-        Err(IngestError::UnsupportedEvent)
+        Err(IngestError::UnknownSession)
     ));
     invalid = event("model");
-    invalid.model_selected = Some("model-a".into());
+    invalid.model_observed = Some("model-a".into());
     assert!(store.ingest(&invalid).is_err());
     invalid = event("identity");
     invalid.local_session_id = Some("forged-local-id".into());

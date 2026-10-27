@@ -62,6 +62,7 @@ dependencies = [
 name = "collector"
 version = "0.1.0"
 dependencies = [
+ "adapters",
  "normalized-schema",
  "rusqlite",
  "serde",
