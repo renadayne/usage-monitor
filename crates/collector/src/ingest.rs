@@ -111,7 +111,7 @@ impl Store {
 
     /// Observer entry point. A source label cannot grant authority to change phases.
     pub fn ingest(&mut self, event: &NormalizedEvent) -> Result<IngestOutcome, IngestError> {
-        self.ingest_lifecycle(event, None)
+        self.ingest_metadata(event, None, None)
     }
 
     /// Trusted local user-action entry point for a future desktop IPC handler.
@@ -129,15 +129,19 @@ impl Store {
                 "phase change requires a local user action",
             ));
         }
-        self.ingest_lifecycle(event, Some(expected_epoch))
+        self.ingest_metadata(event, Some(expected_epoch), None)
     }
 
-    fn ingest_lifecycle(
+    pub(crate) fn ingest_metadata(
         &mut self,
         event: &NormalizedEvent,
         expected_epoch: Option<i64>,
+        samples: Option<&[normalized_schema::usage::UsageSample]>,
     ) -> Result<IngestOutcome, IngestError> {
         let times = event.validate()?;
+        if (event.event_type == EventType::UsageReported) != samples.is_some() {
+            return Err(IngestError::UnsupportedEvent);
+        }
         if event.event_type == EventType::PhaseChanged && expected_epoch.is_none() {
             return Err(IngestError::Invalid("observer events cannot change phase"));
         }
@@ -182,7 +186,14 @@ impl Store {
         canonical.observed_at = format_canonical_utc(times.observed_at_utc);
         canonical.received_at = format_canonical_utc(times.received_at_utc);
         canonical.evidence_expires_at = times.evidence_expires_at_utc.map(format_canonical_utc);
-        let payload = serde_json::to_string(&canonical)?;
+        let payload = if let Some(samples) = samples {
+            serde_json::to_string(&normalized_schema::usage::UsageReport {
+                event: canonical.clone(),
+                samples: samples.to_vec(),
+            })?
+        } else {
+            serde_json::to_string(&canonical)?
+        };
         let provider = enum_text(&event.provider)?;
         let confidence = enum_text(&event.confidence)?;
         let phase = event.phase_at_start.as_ref().map(enum_text).transpose()?;
@@ -213,7 +224,15 @@ impl Store {
             )
             .optional()?;
         if let Some(previous) = existing {
-            let mut previous: NormalizedEvent = serde_json::from_str(&previous)?;
+            let mut previous: NormalizedEvent = if let Some(samples) = samples {
+                let prior: normalized_schema::usage::UsageReport = serde_json::from_str(&previous)?;
+                if prior.samples != samples {
+                    return Err(IngestError::EventIdentityConflict);
+                }
+                prior.event
+            } else {
+                serde_json::from_str(&previous)?
+            };
             previous.received_at = canonical.received_at.clone();
             if previous != canonical {
                 return Err(IngestError::EventIdentityConflict);
@@ -338,7 +357,11 @@ impl Store {
             }
         }
         tx.execute("INSERT INTO events(event_id,integration_id,account_key,session_id,type,source,source_event_id,source_sequence,confidence,observed_at,received_at,source_turn_id,source_inference_id,phase_at_start,phase_epoch,payload_json) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)",params![event_key,event.integration_id,event.account_key,session_id,event_type,event.source,event.source_event_id,event.source_sequence,confidence,canonical.observed_at,canonical.received_at,event.source_turn_id,event.source_inference_id,phase,event.phase_epoch,payload])?;
-        crate::model_projection::apply(&tx, &canonical, &session_id)?;
+        if let Some(samples) = samples {
+            crate::usage::apply(&tx, &canonical, &session_id, samples)?;
+        } else {
+            crate::model_projection::apply(&tx, &canonical, &session_id)?;
+        }
         let marker = serde_json::json!({"eventId":event_key,"sessionId":session_id}).to_string();
         tx.execute(
             "INSERT INTO outbox(id,event_id,kind,payload_json) VALUES (?1,?1,'session.changed',?2)",
@@ -360,7 +383,7 @@ fn enum_text(value: &impl Serialize) -> Result<String, IngestError> {
         .ok_or(IngestError::Invalid("expected a named enum"))
 }
 
-fn namespaced_key(parts: &[&str]) -> String {
+pub(crate) fn namespaced_key(parts: &[&str]) -> String {
     let mut hash = Sha256::new();
     for part in parts {
         hash.update((part.len() as u64).to_be_bytes());

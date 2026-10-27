@@ -3,10 +3,10 @@
 ## Current Implementation Status
 
 The Rust workspace currently includes:
-- Versioned SQLite migrations through `user_version = 3`, preserving older sessions and adding phase-bound inference contexts and independent model projection checkpoints.
+- Versioned SQLite migrations through `user_version = 4`, preserving older sessions and adding phase-bound inference contexts, model checkpoints and immutable usage evidence.
 - Connection configuration and verification (`foreign_keys = ON`, `journal_mode = WAL`, `synchronous = FULL`, bounded `busy_timeout`).
 - Safe refusal of unknown future `user_version` databases and non-empty unversioned databases prior to journal or schema mutation.
-- A strict lifecycle/model-evidence DTO crate (`normalized-schema`). Unknown content, usage and quota fields are rejected in this stage. Served-model claims require direct response evidence, an inference ID and phase epoch.
+- A strict metadata DTO crate (`normalized-schema`) with a separate typed `UsageReport` envelope. Arbitrary content and quota fields are rejected. Served-model claims require direct response evidence, an inference ID and phase epoch.
 - Bounded read-only session/timeline queries with keyset cursors. Timeline results exclude raw payload JSON and workspace paths. Storage time formatting uses fixed-width UTC nanoseconds for stable ordering.
 - Lifecycle ingestion for `session.started`, `session.ended` and explicit local phase changes. Integration/account bindings are immutable. Event, snapshot, checkpoint and outbox writes commit together; retries ignore only receipt time and conflicting event content is rejected.
 
@@ -16,9 +16,11 @@ The `adapters` crate contains a pure Codex hook parser with synthetic fixtures f
 
 Model projection keeps selected, requested, resolved and served fields separate. Served snapshots require a matching durable inference start in the same source/session/phase/epoch. Old-phase, expired, unsequenced updates and competing sources remain historical when they cannot safely replace a head. A first observation can establish a head; replacing it requires increasing source sequence and nondecreasing observation time. Changing phase clears current model fields while retaining history. Turn/inference events are retained without guessing idle from completion or silence. Observer ingestion cannot change phase; the local user-action API is a separate entry point.
 
-The pure `usage-accounting` crate reconciles a single cumulative stream per explicit epoch. Mid-counter attachment establishes a baseline, repeated/older revisions add nothing, and a newer decrease freezes that epoch until an explicit new epoch is selected. All values and arithmetic must stay finite and nonnegative. It does not select canonical series or persist usage yet; callers must retain checkpoints per complete integration/account/counter/scope/series/unit/metric/epoch identity and never add overlapping sources or parent/child aggregates.
+The pure `usage-accounting` crate reconciles a single cumulative stream per explicit epoch. Mid-counter attachment establishes a baseline, repeated/older revisions add nothing, and a newer decrease freezes that epoch until an explicit new epoch is selected. All values and arithmetic must stay finite and nonnegative.
 
-Durable usage ingestion, desktop UI/Tauri shell, HTTP/OTLP endpoints and hook receivers are **not implemented yet**.
+The collector commits usage reports, sample dedupe, checkpoints, accepted contributions and outbox markers together. Local configuration must select one canonical source/series/scope before usage arrives; observer reports cannot change it. Other sources and parent aggregates remain reconciliation evidence. Only direct quantitative evidence contributes; unverified samples cannot poison direct counter order or identity. Session totals remain separate by unit, metric and relationship to totals. Unknown-order snapshots and partial/frozen coverage stay explicit. Source switches, counter mode changes and changed breakdown semantics require reconciliation. There is no price lookup or conversion of credits, percentages or requests into tokens/USD. Time filters describe observed contributions, not provider billing windows.
+
+Desktop UI/Tauri shell, quota ingestion, HTTP/OTLP endpoints and hook receivers are **not implemented yet**.
 
 ## Toolchain Prerequisites (Windows)
 
