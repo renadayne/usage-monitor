@@ -9,6 +9,7 @@ members = [
     "crates/setup-plan",
     "crates/observer-runtime",
     "crates/observer-helper",
+    "apps/desktop/src-tauri",
 ]
 
 [workspace.package]

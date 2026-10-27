@@ -28,9 +28,26 @@ The `observer-runtime` library binds only `127.0.0.1`, authenticates each Codex 
 
 The `aum-observer` executable reads only the explicitly supplied app-owned config and bounded hook stdin, normalizes before transport, and sends the same event/body on at most two loopback attempts. Its main thread waits up to 200 ms from entry, then emits `{}` and exits successfully even when the collector/config/stdin is unavailable. OS process startup is outside that budget. Network attempts share the deadline; payloads are not spooled to disk. Events can be lost while the app is unavailable, so the helper cannot establish target verification or continuous coverage by itself. Tokens live in the app-owned config, not hook command arguments. Build with `cargo build -p observer-helper --release`; invocation is `aum-observer --config <app-owned-config.json>`. Do not point it at provider credential files. Synthetic tests include helper-to-receiver-to-SQLite transport.
 
-The React desktop frontend has a dashboard, session timeline/phase control, policy editor, history export controls and a Codex setup preview screen. Browser mode starts without telemetry; synthetic demo data requires an explicit choice and remains separate from native state. The native IPC bridge is defined, while the Tauri shell is the next integration step. No provider connection is inferred from receiver readiness.
+The React desktop frontend has a dashboard, session timeline/phase control, policy editor, history export controls and a Codex setup preview screen. Browser mode starts without telemetry; synthetic demo data requires an explicit choice and remains separate from native state. The Windows Tauri shell connects these views to the local store and owns the loopback collector. Closing the window hides it to the tray; tray Quit stops the listener/writer. Single-instance handling brings the existing window forward. No provider connection is inferred from receiver readiness.
 
-Tauri shell integration, quota ingestion, OTLP endpoints and actual provider setup writes are **not implemented yet**.
+Quota ingestion, OTLP endpoints, persisted override/notification wiring and actual provider setup writes are **not implemented yet**. Native lifecycle and real Codex compatibility on the user's machine remain unverified.
+
+## Windows desktop build
+
+Native builds need Windows, Rust 1.99.1 with the MSVC toolchain, Visual Studio C++ build tools and WebView2. The GNU toolchain used for local core checks is not the desktop shell toolchain. CI builds a portable pair with embedded frontend assets:
+
+```powershell
+cd apps/desktop
+npm ci --ignore-scripts
+node scripts/generate-icon.mjs
+npm run build
+cd ../..
+cargo build -p usage-monitor-desktop -p observer-helper --release --features usage-monitor-desktop/desktop-shell,usage-monitor-desktop/custom-protocol --locked
+```
+
+Keep `usage-monitor-desktop.exe` and `aum-observer.exe` together from `target/release`. The Windows CI artifact is named `usage-monitor-windows-x64`; it does not install or execute provider hooks.
+
+On application startup, app-owned data lives under `%APPDATA%/dev.usage-monitor.desktop`: SQLite plus `runtime/codex-vscode.json` and `runtime/codex-desktop.json`. Initial profiles are written atomically without overwriting existing files. Tokens persist across restarts; the surfaces start with separate unverified account bindings. Invalid/edited profiles fail validation and are preserved. No provider config or credential location is scanned. The setup screen shows helper/profile locations without exposing token contents. Review absolute helper/profile paths and shell quoting when preparing a hook command; this version previews configuration and does not apply or trust it.
 
 ## Frontend preview
 

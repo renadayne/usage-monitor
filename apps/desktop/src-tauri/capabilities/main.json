@@ -1,0 +1,1 @@
+{ "identifier": "main-window", "description": "Local desktop window only.", "windows": ["main"], "permissions": ["core:default"] }

@@ -86,3 +86,9 @@ export interface SetupPreview {
   skippedEvents: string[];
   requiresTrust: boolean;
 }
+
+export interface SetupInfo {
+  helperExecutable: string;
+  helperExists: boolean;
+  profiles: { surface: string; configPath: string }[];
+}
