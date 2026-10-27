@@ -4,6 +4,7 @@ use std::fmt;
 
 use chrono::{DateTime, SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
+pub mod usage;
 
 pub const SCHEMA_VERSION: u32 = 1;
 pub const MAX_IDENTIFIER_LEN: usize = 256;
@@ -78,6 +79,8 @@ pub enum EventType {
     ModelObserved,
     #[serde(rename = "phase.changed")]
     PhaseChanged,
+    #[serde(rename = "usage.reported")]
+    UsageReported,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -140,6 +143,7 @@ pub struct ValidatedTimestamps {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValidationError {
+    InvalidUsage(&'static str),
     UnsupportedSchemaVersion(u32),
     InvalidIdentifier {
         field: &'static str,
@@ -168,6 +172,7 @@ pub enum ValidationError {
 impl fmt::Display for ValidationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidUsage(reason) => write!(f, "invalid usage: {reason}"),
             Self::UnsupportedSchemaVersion(v) => write!(f, "unsupported schemaVersion {v}"),
             Self::InvalidIdentifier { field, reason } => {
                 write!(f, "invalid identifier '{field}': {reason}")

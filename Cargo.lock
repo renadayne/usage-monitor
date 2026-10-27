@@ -69,6 +69,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "usage-accounting",
 ]
 
 [[package]]

@@ -11,6 +11,7 @@ normalized-schema = { path = "../normalized-schema" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
+usage-accounting = { path = "../usage-accounting" }
 
 [dev-dependencies]
 adapters = { path = "../adapters" }
