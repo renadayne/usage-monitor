@@ -16,6 +16,7 @@ const nav: [Page, string, string][] = [
 ];
 
 export default function App() {
+  const [, setClockTick] = useState(0);
   const [client, setClient] = useState<Client | null>(nativeAvailable ? nativeClient : null);
   const clientRef = useRef(client);
   const selectionRef = useRef<string | null>(null);
@@ -32,6 +33,20 @@ export default function App() {
   const [days, setDays] = useState<7 | 30>(7);
   const [notice, setNotice] = useState('');
   const demo = client !== null && !client.native;
+  const needsFreshnessTick =
+    (page === 'sessions' || page === 'history') &&
+    Boolean(
+      snapshot?.sessions.some(
+        (s) => s.modelEvidenceExpiresAt && Date.parse(s.modelEvidenceExpiresAt) > Date.now(),
+      ) ||
+      (detail?.session.modelEvidenceExpiresAt &&
+        Date.parse(detail.session.modelEvidenceExpiresAt) > Date.now()),
+    );
+  useEffect(() => {
+    if (!needsFreshnessTick) return;
+    const timer = window.setInterval(() => setClockTick((t) => t + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, [needsFreshnessTick]);
 
   useEffect(() => {
     if (!client) return;

@@ -121,6 +121,8 @@ impl Store {
         let policy = self.evaluate_session_policy(session, now, clock_trusted)?;
         tx.commit()?;
         Ok(SessionDetail {
+            clock_trusted,
+            evaluated_at: now.to_owned(),
             session: summary,
             events: events.items,
             next_cursor: events.next_cursor,
@@ -249,6 +251,8 @@ impl Store {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionDetail {
+    pub clock_trusted: bool,
+    pub evaluated_at: String,
     pub session: SessionSummary,
     pub events: Vec<EventSummary>,
     pub next_cursor: Option<EventCursor>,

@@ -47,6 +47,8 @@ cargo build -p usage-monitor-desktop -p observer-helper --release --features usa
 
 Keep `usage-monitor-desktop.exe` and `aum-observer.exe` together from `target/release`. The Windows CI artifact is named `usage-monitor-windows-x64`; it does not install or execute provider hooks.
 
+The first complete Windows executable build passed in [PR #13 CI](https://github.com/renadayne/usage-monitor/actions/runs/40583619764), alongside Rust and frontend checks on both platforms. Cached positive policy UI state is downgraded when its evidence expires, without waiting for the next IPC response; backend clock-health status is preserved in session detail responses.
+
 On application startup, app-owned data lives under `%APPDATA%/dev.usage-monitor.desktop`: SQLite plus `runtime/codex-vscode.json` and `runtime/codex-desktop.json`. Initial profiles are written atomically without overwriting existing files. Tokens persist across restarts; the surfaces start with separate unverified account bindings. Invalid/edited profiles fail validation and are preserved. No provider config or credential location is scanned. The setup screen shows helper/profile locations without exposing token contents. Review absolute helper/profile paths and shell quoting when preparing a hook command; this version previews configuration and does not apply or trust it.
 
 ## Frontend preview

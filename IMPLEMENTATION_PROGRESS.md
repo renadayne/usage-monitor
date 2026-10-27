@@ -19,6 +19,7 @@ Each accepted step is reviewed, checked and committed independently, then pushed
 | 5d / T04 | Bounded fail-open Codex hook helper | Accepted | Windows/Linux CI passed; merged via PR #10; open-stdin deadline and synthetic helper-to-store roundtrip, no live verification |
 | 6a / T08 | Desktop metadata, policy storage/dry run and CSV export API | Accepted | Windows/Linux CI passed; merged via PR #11; consistent read snapshots, scoped policy proof and safe 7/30-day CSV export |
 | 6b / T08 | React desktop frontend | Accepted | Rust/frontend CI passed on Windows/Linux; merged via PR #12; explicit isolated demo and browser phase/policy/430px QA |
-| 6c / T08 | Windows Tauri shell, IPC and app-owned profiles | Review/CI pending | Embedded frontend build, tray lifecycle/single instance, local IPC, persistent separate helper profiles and service/profile tests; real native/provider verification pending |
+| 6c / T08 | Windows Tauri shell, IPC and app-owned profiles | Accepted | All 5 CI jobs passed; Windows executable pair built and archived; merged via PR #13; real GUI/provider verification on user machine pending |
+| 6d / T08 | Expire cached UI evidence and cache native builds | Review/CI pending | Local 6 frontend tests/build passed; cached positive decisions downgrade at expiry and clock health stays explicit; native asset rebuild tracking |
 
 Tooling is provisioned locally under ignored `.tools` where required. No provider configuration changes or paid model calls are part of these core steps.

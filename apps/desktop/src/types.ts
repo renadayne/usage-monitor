@@ -45,6 +45,7 @@ export interface EventCursor {
   eventId: string;
 }
 export interface Snapshot {
+  clockTrusted?: boolean;
   sessions: Session[];
   nextCursor: SessionCursor | null;
   integrations: Integration[];
@@ -74,6 +75,8 @@ export interface Evaluation {
   enforcement: string;
 }
 export interface Detail {
+  clockTrusted?: boolean;
+  evaluatedAt?: string;
   session: Session;
   events: Event[];
   nextCursor: EventCursor | null;
