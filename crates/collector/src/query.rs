@@ -101,6 +101,48 @@ pub struct EventPage {
 }
 
 impl Store {
+    /// One read transaction keeps session phase, proof evaluation and timeline consistent.
+    pub fn session_detail(
+        &self,
+        session: &str,
+        cursor: Option<&EventCursor>,
+        now: &str,
+        clock_trusted: bool,
+    ) -> Result<SessionDetail, crate::ingest::IngestError> {
+        use crate::ingest::IngestError;
+        let tx = self.conn.unchecked_transaction()?;
+        let summary = self
+            .session_summary(session)?
+            .ok_or(IngestError::UnknownSession)?;
+        let events = self
+            .list_session_events(session, 100, cursor)
+            .map_err(|_| IngestError::Invalid("session timeline query failed"))?;
+        let usage = self.session_usage(session, None)?;
+        let policy = self.evaluate_session_policy(session, now, clock_trusted)?;
+        tx.commit()?;
+        Ok(SessionDetail {
+            session: summary,
+            events: events.items,
+            next_cursor: events.next_cursor,
+            usage,
+            policy,
+        })
+    }
+
+    pub fn dashboard_data(
+        &self,
+        cursor: Option<&SessionCursor>,
+    ) -> Result<DashboardData, QueryError> {
+        let tx = self.conn.unchecked_transaction()?;
+        let sessions = self.list_sessions(100, cursor)?;
+        let integrations = self.list_integrations()?;
+        tx.commit()?;
+        Ok(DashboardData {
+            sessions: sessions.items,
+            next_cursor: sessions.next_cursor,
+            integrations,
+        })
+    }
     /// At most 500 integration bindings, excluding any configuration or credentials.
     pub fn list_integrations(&self) -> Result<Vec<IntegrationSummary>, QueryError> {
         let mut stmt=self.conn.prepare("SELECT id,provider,surface,account_key,health,target_verification,last_seen_at FROM integrations ORDER BY provider,surface,id LIMIT 500")?;
@@ -202,6 +244,24 @@ impl Store {
         };
         Ok(EventPage { items, next_cursor })
     }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionDetail {
+    pub session: SessionSummary,
+    pub events: Vec<EventSummary>,
+    pub next_cursor: Option<EventCursor>,
+    pub usage: crate::usage::UsageSummary,
+    pub policy: policy_engine::Evaluation,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DashboardData {
+    pub sessions: Vec<SessionSummary>,
+    pub next_cursor: Option<SessionCursor>,
+    pub integrations: Vec<IntegrationSummary>,
 }
 
 #[derive(Debug, Clone, Serialize)]

@@ -73,6 +73,12 @@ fn dry_run_uses_bound_served_proof_freshness_clock_and_current_phase() {
         .evaluate_session_policy(&start.session_id, "2026-10-28T00:00:04Z", true)
         .unwrap();
     assert_eq!(evaluation.decision, Decision::Violation);
+    let detail = store
+        .session_detail(&start.session_id, None, "2026-10-28T00:00:04Z", true)
+        .unwrap();
+    assert_eq!(detail.session.phase, "REVIEW");
+    assert_eq!(detail.policy.decision, Decision::Violation);
+    assert_eq!(detail.events.last().unwrap().phase_epoch, Some(1));
     assert!(evaluation.should_notify);
     assert_eq!(
         store
