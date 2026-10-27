@@ -28,7 +28,23 @@ The `observer-runtime` library binds only `127.0.0.1`, authenticates each Codex 
 
 The `aum-observer` executable reads only the explicitly supplied app-owned config and bounded hook stdin, normalizes before transport, and sends the same event/body on at most two loopback attempts. Its main thread waits up to 200 ms from entry, then emits `{}` and exits successfully even when the collector/config/stdin is unavailable. OS process startup is outside that budget. Network attempts share the deadline; payloads are not spooled to disk. Events can be lost while the app is unavailable, so the helper cannot establish target verification or continuous coverage by itself. Tokens live in the app-owned config, not hook command arguments. Build with `cargo build -p observer-helper --release`; invocation is `aum-observer --config <app-owned-config.json>`. Do not point it at provider credential files. Synthetic tests include helper-to-receiver-to-SQLite transport.
 
-Desktop UI/Tauri shell, quota ingestion, OTLP endpoints and actual provider setup writes are **not implemented yet**.
+The React desktop frontend has a dashboard, session timeline/phase control, policy editor, history export controls and a Codex setup preview screen. Browser mode starts without telemetry; synthetic demo data requires an explicit choice and remains separate from native state. The native IPC bridge is defined, while the Tauri shell is the next integration step. No provider connection is inferred from receiver readiness.
+
+Tauri shell integration, quota ingestion, OTLP endpoints and actual provider setup writes are **not implemented yet**.
+
+## Frontend preview
+
+With Node 24.14.0 and npm installed:
+
+```powershell
+cd apps/desktop
+npm ci --ignore-scripts
+npm run test
+npm run build
+npm run dev
+```
+
+Open `http://127.0.0.1:1420` and explicitly choose the demo to preview synthetic data. Browser mode cannot operate native data or apply provider configuration. The tests check evidence/freshness classification, demo isolation and local phase IPC arguments. Desktop and mobile browser interactions have also been checked; native Windows lifecycle verification is separate.
 
 ## Toolchain Prerequisites (Windows)
 
