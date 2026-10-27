@@ -82,6 +82,31 @@ export interface Detail {
   nextCursor: EventCursor | null;
   usage: Usage;
   policy: Evaluation;
+  quotas: AccountQuota[];
+}
+export interface AccountQuota {
+  snapshot: {
+    quotaKey: string;
+    provider: Provider;
+    accountKey: string;
+    scope: string;
+    bucket: string;
+    unit: string;
+    windowKey: string;
+    windowStart: string | null;
+    windowEnd: string | null;
+    resetsAt: string | null;
+    used: number | null;
+    limit: number | null;
+    remaining: number | null;
+    usedPercent: number | null;
+    observedAt: string;
+    staleAfter: string | null;
+  };
+  sourceIntegrationId: string;
+  source: string;
+  confidence: string;
+  freshness: 'fresh' | 'stale' | 'expired' | 'unknown';
 }
 export interface SetupPreview {
   mergedConfig: string;

@@ -7,7 +7,7 @@ use std::time::Duration;
 use rusqlite::{Connection, TransactionBehavior};
 
 /// Current SQLite `PRAGMA user_version` managed by this crate.
-pub const CURRENT_SCHEMA_VERSION: u32 = 4;
+pub const CURRENT_SCHEMA_VERSION: u32 = 5;
 
 /// Bounded SQLite busy timeout in milliseconds.
 pub const DEFAULT_BUSY_TIMEOUT_MS: u64 = 5_000;
@@ -22,6 +22,7 @@ const INITIAL_MIGRATION_SQL: &str = include_str!("../migrations/0001_initial.sql
 const PROJECTION_MIGRATION_SQL: &str = include_str!("../migrations/0002_projection.sql");
 const MODEL_MIGRATION_SQL: &str = include_str!("../migrations/0003_model_projection.sql");
 const USAGE_MIGRATION_SQL: &str = include_str!("../migrations/0004_usage.sql");
+const QUOTA_MIGRATION_SQL: &str = include_str!("../migrations/0005_quotas.sql");
 
 /// Base v1 table inventory (10 tables).
 const V1_TABLES: [&str; 10] = [
@@ -70,7 +71,7 @@ const V3_TABLES: [&str; 13] = [
 ];
 
 /// Expected current table inventory, sorted ascending.
-pub const EXPECTED_TABLES: [&str; 15] = [
+const V4_TABLES: [&str; 15] = [
     "accounting_selections",
     "events",
     "inference_context",
@@ -79,6 +80,27 @@ pub const EXPECTED_TABLES: [&str; 15] = [
     "outbox",
     "policies",
     "policy_overrides",
+    "quotas",
+    "session_projection",
+    "sessions",
+    "usage_checkpoints",
+    "usage_contributions",
+    "usage_evidence",
+    "violations",
+];
+
+/// Expected current table inventory, sorted ascending.
+pub const EXPECTED_TABLES: [&str; 17] = [
+    "accounting_selections",
+    "events",
+    "inference_context",
+    "integrations",
+    "model_projection",
+    "outbox",
+    "policies",
+    "policy_overrides",
+    "quota_evidence",
+    "quota_projection",
     "quotas",
     "session_projection",
     "sessions",
@@ -204,7 +226,7 @@ impl Store {
     /// - Validates `PRAGMA user_version` and schema cleanliness before mutating `journal_mode`.
     /// - Enforces `foreign_keys = ON`, `journal_mode = WAL`, `synchronous = FULL`, and a bounded
     ///   `busy_timeout`.
-    /// - Applies each ordered migration transactionally through schema version 4.
+    /// - Applies each ordered migration transactionally through schema version 5.
     ///   Existing v1 data is preserved and its projection checkpoints are backfilled.
     pub fn open(path: impl AsRef<Path>) -> Result<Self, StoreError> {
         let path_ref = path.as_ref();
@@ -240,6 +262,9 @@ impl Store {
         }
         if initial_version < 4 {
             apply_migration_sql(&mut conn, USAGE_MIGRATION_SQL, 4)?;
+        }
+        if initial_version < 5 {
+            apply_migration_sql(&mut conn, QUOTA_MIGRATION_SQL, 5)?;
         }
 
         verify_expected_schema(&conn)?;
@@ -406,7 +431,8 @@ fn verify_schema_for_version(conn: &Connection, version: u32) -> Result<(), Stor
         1 => &V1_TABLES,
         2 => &V2_TABLES,
         3 => &V3_TABLES,
-        4 => &EXPECTED_TABLES,
+        4 => &V4_TABLES,
+        5 => &EXPECTED_TABLES,
         _ => return Err(StoreError::UnsupportedSchemaVersion(i64::from(version))),
     };
 

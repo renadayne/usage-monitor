@@ -6,6 +6,7 @@ mod model_projection;
 pub mod policies;
 pub mod policy_view;
 pub mod query;
+pub mod quota;
 pub mod store;
 pub mod usage;
 

@@ -24,7 +24,7 @@ impl Store {
             .checked_sub_signed(chrono::TimeDelta::days(days.into()))
             .ok_or(IngestError::Invalid("export date range is invalid"))?;
         let mut stmt=self.conn.prepare("SELECT e.payload_json,e.session_id,i.provider,i.surface FROM events e JOIN integrations i ON i.id=e.integration_id
-            WHERE e.observed_at>=?1 AND e.observed_at<=?2 ORDER BY e.observed_at DESC,e.event_id ASC LIMIT ?3")?;
+            WHERE e.session_id IS NOT NULL AND e.observed_at>=?1 AND e.observed_at<=?2 ORDER BY e.observed_at DESC,e.event_id ASC LIMIT ?3")?;
         let rows = stmt
             .query_map(
                 params![

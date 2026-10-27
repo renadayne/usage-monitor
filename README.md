@@ -53,6 +53,8 @@ On application startup, app-owned data lives under `%APPDATA%/dev.usage-monitor.
 
 ## Frontend preview
 
+Account quota storage keeps provider/account/scope/bucket/unit/window identities separate from sessions. A missing window does not clear another window; missing counters, percentages and resets remain absent. Source overage is preserved, and stale/expired/unverified windows are labeled explicitly. Session detail references the shared account view (up to 200 recent windows); it does not sum or convert subscription limits. This version admits quota observations through the local collector API and synthetic fixtures only; the Codex hook route does not claim quota capture.
+
 With Node 24.14.0 and npm installed:
 
 ```powershell

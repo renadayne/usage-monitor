@@ -119,6 +119,13 @@ impl Store {
             .map_err(|_| IngestError::Invalid("session timeline query failed"))?;
         let usage = self.session_usage(session, None)?;
         let policy = self.evaluate_session_policy(session, now, clock_trusted)?;
+        let (provider, account): (String, String) = self.conn.query_row(
+            "SELECT provider,account_key FROM integrations WHERE id=?1",
+            [&summary.integration_id],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )?;
+        let provider = serde_json::from_value(provider.into())?;
+        let quotas = self.account_quotas(provider, &account, now, clock_trusted)?;
         tx.commit()?;
         Ok(SessionDetail {
             clock_trusted,
@@ -128,6 +135,7 @@ impl Store {
             next_cursor: events.next_cursor,
             usage,
             policy,
+            quotas,
         })
     }
 
@@ -258,6 +266,7 @@ pub struct SessionDetail {
     pub next_cursor: Option<EventCursor>,
     pub usage: crate::usage::UsageSummary,
     pub policy: policy_engine::Evaluation,
+    pub quotas: Vec<crate::quota::AccountQuota>,
 }
 
 #[derive(Debug, Serialize)]
