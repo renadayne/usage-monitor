@@ -11,6 +11,37 @@ permissions:
   contents: read
 
 jobs:
+  windows-desktop:
+    name: Windows desktop executable
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.14.0'
+      - name: Build embedded frontend
+        working-directory: apps/desktop
+        run: |
+          npm ci --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/generate-icon.mjs
+          npm run build
+      - name: Install tested native Rust toolchain
+        run: rustup toolchain install 1.99.1 --profile minimal
+      - name: Build native shell and hook helper
+        run: cargo +1.99.1 build -p usage-monitor-desktop -p observer-helper --release --features usage-monitor-desktop/desktop-shell,usage-monitor-desktop/custom-protocol --locked
+      - name: Upload portable executables
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: usage-monitor-windows-x64
+          path: |
+            target/release/usage-monitor-desktop.exe
+            target/release/aum-observer.exe
+          if-no-files-found: error
+          retention-days: 7
   frontend:
     name: Frontend / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}

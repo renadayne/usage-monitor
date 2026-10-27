@@ -110,6 +110,15 @@ pub struct ObserverServer {
     writer: WriterGuard,
 }
 impl ObserverServer {
+    pub fn is_running(&self) -> bool {
+        !self.task.is_finished()
+            && !self.writer.stopping.load(Ordering::Acquire)
+            && self
+                .writer
+                .worker
+                .as_ref()
+                .is_some_and(|worker| !worker.is_finished())
+    }
     pub async fn shutdown(mut self) -> Result<(), &'static str> {
         self.writer.stop();
         if let Some(shutdown) = self.shutdown.take() {

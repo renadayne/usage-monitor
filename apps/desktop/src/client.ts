@@ -1,5 +1,14 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
-import type { Detail, EventCursor, Phase, Policy, SessionCursor, SetupPreview, Snapshot } from './types';
+import type {
+  Detail,
+  EventCursor,
+  Phase,
+  Policy,
+  SessionCursor,
+  SetupInfo,
+  SetupPreview,
+  Snapshot,
+} from './types';
 
 export interface Client {
   native: boolean;
@@ -8,6 +17,7 @@ export interface Client {
   changePhase(sessionId: string, expectedEpoch: number, phase: Phase): Promise<void>;
   policies(): Promise<Policy[]>;
   savePolicy(policy: Policy): Promise<void>;
+  setupInfo(): Promise<SetupInfo>;
   previewSetup(currentJson: string, helperCommand: string): Promise<SetupPreview>;
   exportHistory(days: 7 | 30): Promise<{ csv: string; rows: number; truncated: boolean }>;
 }
@@ -20,6 +30,7 @@ export const nativeClient: Client = {
     invoke('change_phase', { sessionId, expectedEpoch, phase }),
   policies: () => invoke('list_policies'),
   savePolicy: (policy) => invoke('save_policy', { policy }),
+  setupInfo: () => invoke('setup_info'),
   previewSetup: (currentJson, helperCommand) => invoke('preview_setup', { currentJson, helperCommand }),
   exportHistory: (days) => invoke('export_history', { days }),
 };
@@ -141,19 +152,17 @@ export function createDemoClient(): Client {
       session.modelResolved = null;
       session.modelObserved = null;
       session.modelEvidenceKind = 'unknown';
-      events
-        .get(id)
-        ?.push({
-          eventId: crypto.randomUUID(),
-          eventType: 'phase.changed',
-          source: 'aum.user.demo',
-          confidence: 'direct',
-          observedAt: session.updatedAt,
-          receivedAt: session.updatedAt,
-          sourceInferenceId: null,
-          phaseAtStart: phase,
-          phaseEpoch: session.phaseEpoch,
-        });
+      events.get(id)?.push({
+        eventId: crypto.randomUUID(),
+        eventType: 'phase.changed',
+        source: 'aum.user.demo',
+        confidence: 'direct',
+        observedAt: session.updatedAt,
+        receivedAt: session.updatedAt,
+        sourceInferenceId: null,
+        phaseAtStart: phase,
+        phaseEpoch: session.phaseEpoch,
+      });
     },
     async policies() {
       return structuredClone(policies);
@@ -162,6 +171,9 @@ export function createDemoClient(): Client {
       const index = policies.findIndex((p) => p.id === policy.id);
       if (index < 0) policies.push(structuredClone(policy));
       else policies[index] = structuredClone(policy);
+    },
+    async setupInfo() {
+      return { helperExecutable: '', helperExists: false, profiles: [] };
     },
     async previewSetup() {
       throw new Error('Mở ứng dụng desktop để tạo bản đề xuất cấu hình.');

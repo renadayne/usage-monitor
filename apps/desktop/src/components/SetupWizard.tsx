@@ -1,8 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Client } from '../client';
-import type { SetupPreview } from '../types';
+import type { SetupInfo, SetupPreview } from '../types';
 
 export function SetupWizard({ client }: { client: Client }) {
+  const [info, setInfo] = useState<SetupInfo | null>(null);
+  useEffect(() => {
+    let active = true;
+    if (client.native)
+      void client
+        .setupInfo()
+        .then((info) => {
+          if (active) setInfo(info);
+        })
+        .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [client]);
   const [config, setConfig] = useState('{}');
   const [command, setCommand] = useState('');
   const [preview, setPreview] = useState<SetupPreview | null>(null);
@@ -30,6 +44,28 @@ export function SetupWizard({ client }: { client: Client }) {
           </article>
         ))}
       </div>
+      {info && (
+        <section className="panel availability">
+          <h2>Helper và profile của ứng dụng</h2>
+          <p>
+            {info.helperExists
+              ? 'Đã tìm thấy helper cạnh executable desktop.'
+              : 'Chưa tìm thấy helper. Build hoặc đặt aum-observer.exe cạnh ứng dụng.'}
+          </p>
+          <pre>{info.helperExecutable}</pre>
+          <dl>
+            {info.profiles.map((profile) => (
+              <div key={profile.configPath}>
+                <dt>{profile.surface}</dt>
+                <dd>
+                  <code>{profile.configPath}</code>
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <p>Đây là file runtime riêng của Usage Monitor. Không dán token vào lệnh hook.</p>
+        </section>
+      )}
       <div className="notice">
         Bản đề xuất chỉ nằm trong bộ nhớ. Bạn cần review và trust hook trong Codex sau khi tự cập nhật file.
       </div>
