@@ -1,4 +1,4 @@
-//! Atomic lifecycle ingestion. Success is returned only after the SQLite commit.
+//! Atomic metadata ingestion. Success is returned only after the SQLite commit.
 
 use std::fmt;
 
@@ -138,23 +138,18 @@ impl Store {
         expected_epoch: Option<i64>,
     ) -> Result<IngestOutcome, IngestError> {
         let times = event.validate()?;
-        if !matches!(
-            event.event_type,
-            EventType::SessionStarted | EventType::SessionEnded | EventType::PhaseChanged
-        ) {
-            return Err(IngestError::UnsupportedEvent);
-        }
         if event.event_type == EventType::PhaseChanged && expected_epoch.is_none() {
             return Err(IngestError::Invalid("observer events cannot change phase"));
         }
-        if event.model_selected.is_some()
-            || event.model_requested.is_some()
-            || event.model_resolved.is_some()
-            || event.model_observed.is_some()
-            || event.model_evidence_kind != ModelEvidenceKind::Unknown
+        if event.event_type == EventType::PhaseChanged
+            && (event.model_selected.is_some()
+                || event.model_requested.is_some()
+                || event.model_resolved.is_some()
+                || event.model_observed.is_some()
+                || event.model_evidence_kind != ModelEvidenceKind::Unknown)
         {
             return Err(IngestError::Invalid(
-                "model projection is not supported in this lifecycle slice",
+                "phase changes cannot assert model evidence",
             ));
         }
         let event_type = enum_text(&event.event_type)?;
@@ -297,7 +292,11 @@ impl Store {
                     "UPDATE session_projection SET phase_changed_at=?1 WHERE session_id=?2",
                     params![canonical.received_at, session_id],
                 )?;
-            } else {
+                tx.execute(
+                    "DELETE FROM model_projection WHERE session_id=?1",
+                    [&session_id],
+                )?;
+            } else if event.event_type == EventType::SessionEnded {
                 let (source,sequence,boundary):(String,Option<i64>,String)=tx.query_row("SELECT activity_source,activity_sequence,phase_changed_at FROM session_projection WHERE session_id=?1",[&session_id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?)))?;
                 let epoch_matches = event.phase_epoch == Some(current_epoch)
                     || (current_epoch == 0 && event.phase_epoch.is_none());
@@ -339,6 +338,7 @@ impl Store {
             }
         }
         tx.execute("INSERT INTO events(event_id,integration_id,account_key,session_id,type,source,source_event_id,source_sequence,confidence,observed_at,received_at,source_turn_id,source_inference_id,phase_at_start,phase_epoch,payload_json) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)",params![event_key,event.integration_id,event.account_key,session_id,event_type,event.source,event.source_event_id,event.source_sequence,confidence,canonical.observed_at,canonical.received_at,event.source_turn_id,event.source_inference_id,phase,event.phase_epoch,payload])?;
+        crate::model_projection::apply(&tx, &canonical, &session_id)?;
         let marker = serde_json::json!({"eventId":event_key,"sessionId":session_id}).to_string();
         tx.execute(
             "INSERT INTO outbox(id,event_id,kind,payload_json) VALUES (?1,?1,'session.changed',?2)",

@@ -55,6 +55,7 @@ pub struct SessionSummary {
     pub updated_at: Option<String>,
     pub model_selected: Option<String>,
     pub model_requested: Option<String>,
+    pub model_resolved: Option<String>,
     pub model_observed: Option<String>,
     pub model_evidence_kind: String,
     pub model_observed_at: Option<String>,
@@ -105,7 +106,7 @@ impl Store {
         let mut statement = self.conn.prepare(
             "SELECT id, integration_id, source_session_id, activity, phase, phase_epoch,
                     updated_at, model_selected, model_requested, model_observed,
-                    model_evidence_kind, model_observed_at, model_evidence_expires_at
+                    model_evidence_kind, model_observed_at, model_evidence_expires_at, model_resolved
              FROM sessions
              WHERE ?1 IS NULL OR COALESCE(updated_at, '') < ?1
                 OR (COALESCE(updated_at, '') = ?1 AND id > ?2)
@@ -202,5 +203,6 @@ fn session_from_row(row: &Row<'_>) -> rusqlite::Result<SessionSummary> {
         model_evidence_kind: row.get(10)?,
         model_observed_at: row.get(11)?,
         model_evidence_expires_at: row.get(12)?,
+        model_resolved: row.get(13)?,
     })
 }
