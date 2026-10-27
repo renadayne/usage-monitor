@@ -6,6 +6,7 @@ members = [
     "crates/policy-engine",
     "crates/adapters",
     "crates/usage-accounting",
+    "crates/setup-plan",
 ]
 
 [workspace.package]
