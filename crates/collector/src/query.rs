@@ -3,6 +3,7 @@
 use std::fmt;
 
 use rusqlite::{params, Row};
+use serde::{Deserialize, Serialize};
 
 use crate::Store;
 
@@ -38,13 +39,15 @@ impl From<rusqlite::Error> for QueryError {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SessionCursor {
     pub updated_at: String,
     pub id: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SessionSummary {
     pub id: String,
     pub integration_id: String,
@@ -62,19 +65,22 @@ pub struct SessionSummary {
     pub model_evidence_expires_at: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SessionPage {
     pub items: Vec<SessionSummary>,
     pub next_cursor: Option<SessionCursor>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct EventCursor {
     pub observed_at: String,
     pub event_id: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EventSummary {
     pub event_id: String,
     pub event_type: String,
@@ -87,13 +93,30 @@ pub struct EventSummary {
     pub phase_epoch: Option<i64>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EventPage {
     pub items: Vec<EventSummary>,
     pub next_cursor: Option<EventCursor>,
 }
 
 impl Store {
+    /// At most 500 integration bindings, excluding any configuration or credentials.
+    pub fn list_integrations(&self) -> Result<Vec<IntegrationSummary>, QueryError> {
+        let mut stmt=self.conn.prepare("SELECT id,provider,surface,account_key,health,target_verification,last_seen_at FROM integrations ORDER BY provider,surface,id LIMIT 500")?;
+        let rows = stmt.query_map([], |r| {
+            Ok(IntegrationSummary {
+                id: r.get(0)?,
+                provider: r.get(1)?,
+                surface: r.get(2)?,
+                account_key: r.get(3)?,
+                health: r.get(4)?,
+                target_verification: r.get(5)?,
+                last_seen_at: r.get(6)?,
+            })
+        })?;
+        Ok(rows.collect::<rusqlite::Result<Vec<_>>>()?)
+    }
     /// Recent committed sessions, ordered by fixed-width UTC update time descending then ID ascending.
     /// Cursors are keyset boundaries, not a frozen snapshot if sessions change between requests.
     /// Reading never infers idle/disconnected or upgrades stale model evidence.
@@ -181,6 +204,18 @@ impl Store {
     }
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IntegrationSummary {
+    pub id: String,
+    pub provider: String,
+    pub surface: String,
+    pub account_key: String,
+    pub health: String,
+    pub target_verification: String,
+    pub last_seen_at: Option<String>,
+}
+
 fn fetch_limit(limit: u32) -> Result<i64, QueryError> {
     if !(1..=MAX_PAGE_SIZE).contains(&limit) {
         return Err(QueryError::InvalidPageSize);
@@ -188,7 +223,7 @@ fn fetch_limit(limit: u32) -> Result<i64, QueryError> {
     Ok(i64::from(limit) + 1)
 }
 
-fn session_from_row(row: &Row<'_>) -> rusqlite::Result<SessionSummary> {
+pub(crate) fn session_from_row(row: &Row<'_>) -> rusqlite::Result<SessionSummary> {
     Ok(SessionSummary {
         id: row.get(0)?,
         integration_id: row.get(1)?,

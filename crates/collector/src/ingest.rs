@@ -364,6 +364,10 @@ impl Store {
         }
         let marker = serde_json::json!({"eventId":event_key,"sessionId":session_id}).to_string();
         tx.execute(
+            "UPDATE integrations SET last_seen_at=MAX(COALESCE(last_seen_at,''),?1) WHERE id=?2",
+            params![canonical.received_at, event.integration_id],
+        )?;
+        tx.execute(
             "INSERT INTO outbox(id,event_id,kind,payload_json) VALUES (?1,?1,'session.changed',?2)",
             params![event_key, marker],
         )?;
