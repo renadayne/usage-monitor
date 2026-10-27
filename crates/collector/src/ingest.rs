@@ -346,7 +346,7 @@ impl Store {
                     && event.confidence == Confidence::Direct
                 {
                     tx.execute(
-                        "UPDATE sessions SET activity=?1,updated_at=?2,ended_at=?2 WHERE id=?3",
+                        "UPDATE sessions SET activity=?1,updated_at=MAX(COALESCE(updated_at,''),?2),ended_at=?2 WHERE id=?3",
                         params![enum_text(&terminal)?, canonical.observed_at, session_id],
                     )?;
                     tx.execute(
@@ -363,6 +363,11 @@ impl Store {
             crate::model_projection::apply(&tx, &canonical, &session_id)?;
         }
         let marker = serde_json::json!({"eventId":event_key,"sessionId":session_id}).to_string();
+        // Last observation advances independently of whether model/activity evidence can replace a head.
+        tx.execute(
+            "UPDATE sessions SET updated_at=MAX(COALESCE(updated_at,''),?1) WHERE id=?2",
+            params![canonical.observed_at, session_id],
+        )?;
         tx.execute(
             "UPDATE integrations SET last_seen_at=MAX(COALESCE(last_seen_at,''),?1) WHERE id=?2",
             params![canonical.received_at, event.integration_id],
