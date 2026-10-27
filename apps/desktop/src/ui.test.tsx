@@ -81,4 +81,19 @@ describe('demo and native authority boundaries', () => {
       phase: 'REVIEW',
     });
   });
+  it('passes bounded exception intent and session binding through explicit native IPC', async () => {
+    const request = {
+      id: 'override',
+      policyId: 'rule',
+      sessionId: 'session',
+      expectedPhaseEpoch: 7,
+      replacementModelIds: ['model'],
+      reason: 'Synthetic review exception',
+      durationSeconds: 900,
+    };
+    await nativeClient.createOverride(request);
+    expect(invoke).toHaveBeenLastCalledWith('create_override', { request });
+    await nativeClient.revokeOverride('override', 'session');
+    expect(invoke).toHaveBeenLastCalledWith('revoke_override', { id: 'override', sessionId: 'session' });
+  });
 });

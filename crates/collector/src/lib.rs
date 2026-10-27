@@ -3,6 +3,7 @@
 pub mod export;
 pub mod ingest;
 mod model_projection;
+pub mod overrides;
 pub mod policies;
 pub mod policy_view;
 pub mod query;

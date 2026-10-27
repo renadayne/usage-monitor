@@ -66,6 +66,7 @@ export interface Policy {
   enabled: boolean;
 }
 export interface Evaluation {
+  overrideExpiresAtMs?: number | null;
   decision: 'compliant' | 'violation' | 'not_applicable' | 'indeterminate';
   reason: string;
   shouldNotify: boolean;
@@ -83,6 +84,27 @@ export interface Detail {
   usage: Usage;
   policy: Evaluation;
   quotas: AccountQuota[];
+  overrides: OverrideRecord[];
+}
+export interface OverrideRequest {
+  id: string;
+  policyId: string;
+  sessionId: string;
+  expectedPhaseEpoch: number;
+  replacementModelIds: string[];
+  reason: string;
+  durationSeconds: number;
+}
+export interface OverrideRecord {
+  id: string;
+  policyId: string;
+  sessionId: string;
+  phaseEpoch: number;
+  replacementModelIds: string[];
+  reason: string;
+  createdAt: string;
+  expiresAt: string;
+  revokedAt: string | null;
 }
 export interface AccountQuota {
   snapshot: {

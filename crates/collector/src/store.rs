@@ -7,7 +7,7 @@ use std::time::Duration;
 use rusqlite::{Connection, TransactionBehavior};
 
 /// Current SQLite `PRAGMA user_version` managed by this crate.
-pub const CURRENT_SCHEMA_VERSION: u32 = 5;
+pub const CURRENT_SCHEMA_VERSION: u32 = 6;
 
 /// Bounded SQLite busy timeout in milliseconds.
 pub const DEFAULT_BUSY_TIMEOUT_MS: u64 = 5_000;
@@ -23,6 +23,7 @@ const PROJECTION_MIGRATION_SQL: &str = include_str!("../migrations/0002_projecti
 const MODEL_MIGRATION_SQL: &str = include_str!("../migrations/0003_model_projection.sql");
 const USAGE_MIGRATION_SQL: &str = include_str!("../migrations/0004_usage.sql");
 const QUOTA_MIGRATION_SQL: &str = include_str!("../migrations/0005_quotas.sql");
+const OVERRIDE_MIGRATION_SQL: &str = include_str!("../migrations/0006_overrides.sql");
 
 /// Base v1 table inventory (10 tables).
 const V1_TABLES: [&str; 10] = [
@@ -226,7 +227,7 @@ impl Store {
     /// - Validates `PRAGMA user_version` and schema cleanliness before mutating `journal_mode`.
     /// - Enforces `foreign_keys = ON`, `journal_mode = WAL`, `synchronous = FULL`, and a bounded
     ///   `busy_timeout`.
-    /// - Applies each ordered migration transactionally through schema version 5.
+    /// - Applies each ordered migration transactionally through schema version 6.
     ///   Existing v1 data is preserved and its projection checkpoints are backfilled.
     pub fn open(path: impl AsRef<Path>) -> Result<Self, StoreError> {
         let path_ref = path.as_ref();
@@ -265,6 +266,9 @@ impl Store {
         }
         if initial_version < 5 {
             apply_migration_sql(&mut conn, QUOTA_MIGRATION_SQL, 5)?;
+        }
+        if initial_version < 6 {
+            apply_migration_sql(&mut conn, OVERRIDE_MIGRATION_SQL, 6)?;
         }
 
         verify_expected_schema(&conn)?;
@@ -432,7 +436,7 @@ fn verify_schema_for_version(conn: &Connection, version: u32) -> Result<(), Stor
         2 => &V2_TABLES,
         3 => &V3_TABLES,
         4 => &V4_TABLES,
-        5 => &EXPECTED_TABLES,
+        5 | 6 => &EXPECTED_TABLES,
         _ => return Err(StoreError::UnsupportedSchemaVersion(i64::from(version))),
     };
 
@@ -446,6 +450,20 @@ fn verify_schema_for_version(conn: &Connection, version: u32) -> Result<(), Stor
             return Err(StoreError::InvalidExistingSchema {
                 missing_object: table,
             });
+        }
+    }
+    if version >= 6 {
+        for index in [
+            "idx_override_unrevoked",
+            "idx_override_active",
+            "idx_override_history",
+        ] {
+            let exists:bool = conn.query_row("SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='index' AND name=?1 AND tbl_name='policy_overrides')",[index],|r|r.get(0))?;
+            if !exists {
+                return Err(StoreError::InvalidExistingSchema {
+                    missing_object: index,
+                });
+            }
         }
     }
 

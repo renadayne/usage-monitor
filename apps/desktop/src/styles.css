@@ -1181,6 +1181,35 @@ small {
   font-size: 13px;
   line-height: 1.5;
 }
+.override-panel {
+  border-top: 1px solid #e1e8de;
+  padding: 20px 0;
+}
+.override-panel fieldset {
+  border: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.override-panel label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+.override-list {
+  list-style: none;
+  padding: 0;
+  font-size: 13px;
+}
+.override-list li {
+  border-bottom: 1px solid #e1e8de;
+  padding: 12px 0;
+  overflow-wrap: anywhere;
+}
+.override-list .badge {
+  margin-left: 8px;
+}
 .quota-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));

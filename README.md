@@ -53,6 +53,8 @@ On application startup, app-owned data lives under `%APPDATA%/dev.usage-monitor.
 
 ## Frontend preview
 
+Native session detail supports explicit policy exceptions scoped to a winning policy, session and current phase epoch. Exceptions require a reason, exact replacement model IDs and a duration of 1 second to 24 hours. Creating a replacement atomically revokes its predecessor; revocation and expired history are retained. Expiry is enforced during evaluation without a scheduler, and cached UI decisions become indeterminate at the exception boundary. Clock anomalies prevent new exceptions. Exceptions change local advisory rules and do not supply served-model evidence or provider control.
+
 Account quota storage keeps provider/account/scope/bucket/unit/window identities separate from sessions. A missing window does not clear another window; missing counters, percentages and resets remain absent. Source overage is preserved, and stale/expired/unverified windows are labeled explicitly. Session detail references the shared account view (up to 200 recent windows); it does not sum or convert subscription limits. This version admits quota observations through the local collector API and synthetic fixtures only; the Codex hook route does not claim quota capture.
 
 With Node 24.14.0 and npm installed:

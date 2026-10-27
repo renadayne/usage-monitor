@@ -113,6 +113,8 @@ pub struct Evaluation {
     pub enforcement: Enforcement,
     pub should_notify: bool,
     pub selection_mismatch_warning: bool,
+    /// Earliest expiry among applied exceptions, for invalidating cached evaluations.
+    pub override_expires_at_ms: Option<i64>,
 }
 
 /// Select by specificity, then descending priority. Ties intersect exact model IDs.
@@ -132,6 +134,7 @@ pub fn evaluate(
         enforcement: Enforcement::Advisory,
         should_notify: false,
         selection_mismatch_warning: false,
+        override_expires_at_ms: None,
     };
     if context.phase == Phase::Unassigned {
         return result;
@@ -206,6 +209,15 @@ pub fn evaluate(
         if active.len() > 1 {
             result.reason = Reason::ConfigurationConflict;
             return result;
+        }
+        if let Some(exception) = active.first() {
+            result.override_expires_at_ms = Some(
+                result
+                    .override_expires_at_ms
+                    .map_or(exception.expires_at_ms, |previous| {
+                        previous.min(exception.expires_at_ms)
+                    }),
+            );
         }
         let ids = active
             .first()

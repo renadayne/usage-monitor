@@ -96,6 +96,20 @@ async fn export_history(app: AppHandle, days: u8) -> Result<HistoryExport, Strin
     with_service(app, move |service| service.export_history(days)).await
 }
 #[tauri::command]
+async fn create_override(
+    app: AppHandle,
+    request: collector::overrides::OverrideRequest,
+) -> Result<(), String> {
+    with_service(app, move |service| service.create_override(&request)).await
+}
+#[tauri::command]
+async fn revoke_override(app: AppHandle, id: String, session_id: String) -> Result<(), String> {
+    with_service(app, move |service| {
+        service.revoke_override(&id, &session_id)
+    })
+    .await
+}
+#[tauri::command]
 async fn preview_setup(
     current_json: String,
     helper_command: String,
@@ -163,7 +177,7 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window,event|if let tauri::WindowEvent::CloseRequested{api,..}=event {let _=window.hide();api.prevent_close();})
-        .invoke_handler(tauri::generate_handler![dashboard,session_detail,change_phase,list_policies,save_policy,export_history,preview_setup,setup_info])
+        .invoke_handler(tauri::generate_handler![dashboard,session_detail,change_phase,list_policies,save_policy,create_override,revoke_override,export_history,preview_setup,setup_info])
         .build(tauri::generate_context!())
         .expect("Không khởi động được Usage Monitor. Kiểm tra app data hoặc cổng 127.0.0.1:4319.");
     app.run(|app, event| {
