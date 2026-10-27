@@ -17,6 +17,7 @@ Each accepted step is reviewed, checked and committed independently, then pushed
 | 5b / T05 | In-memory Codex setup/revert preview | Accepted | Windows/Linux CI passed; merged via PR #8; no provider config writes or trust changes |
 | 5c / T04 | Authenticated Codex loopback intake | Accepted | Windows/Linux CI passed; merged via PR #9; bounded queue/body, ACK-after-commit, auth/origin and explicit shutdown tests |
 | 5d / T04 | Bounded fail-open Codex hook helper | Accepted | Windows/Linux CI passed; merged via PR #10; open-stdin deadline and synthetic helper-to-store roundtrip, no live verification |
-| 6a / T08 | Desktop metadata, policy storage/dry run and CSV export API | Review/CI pending | Bounded policy config, committed proof/phase/clock evaluation, privacy views, 7/30-day export and CSV formula neutralization |
+| 6a / T08 | Desktop metadata, policy storage/dry run and CSV export API | Accepted | Windows/Linux CI passed; merged via PR #11; consistent read snapshots, scoped policy proof and safe 7/30-day CSV export |
+| 6b / T08 | React desktop frontend | Review/CI pending | Local typecheck/build and 5 semantic tests passed; browser phase/policy and 430px layout checked; explicit isolated demo, native shell pending |
 
 Tooling is provisioned locally under ignored `.tools` where required. No provider configuration changes or paid model calls are part of these core steps.
