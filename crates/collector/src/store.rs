@@ -7,7 +7,7 @@ use std::time::Duration;
 use rusqlite::{Connection, TransactionBehavior};
 
 /// Current SQLite `PRAGMA user_version` managed by this crate.
-pub const CURRENT_SCHEMA_VERSION: u32 = 1;
+pub const CURRENT_SCHEMA_VERSION: u32 = 2;
 
 /// Bounded SQLite busy timeout in milliseconds.
 pub const DEFAULT_BUSY_TIMEOUT_MS: u64 = 5_000;
@@ -18,14 +18,32 @@ const SYNCHRONOUS_FULL: i64 = 2;
 /// Canonical initial DDL (10 tables + index), with connection pragmas stripped out.
 const INITIAL_MIGRATION_SQL: &str = include_str!("../migrations/0001_initial.sql");
 
-/// Expected table inventory defined by Architecture Section 6.
-pub const EXPECTED_TABLES: [&str; 10] = [
+/// Schema v2 migration adding `session_projection` and backfilling existing sessions.
+const PROJECTION_MIGRATION_SQL: &str = include_str!("../migrations/0002_projection.sql");
+
+/// Base v1 table inventory (10 tables).
+const V1_TABLES: [&str; 10] = [
     "events",
     "integrations",
     "outbox",
     "policies",
     "policy_overrides",
     "quotas",
+    "sessions",
+    "usage_checkpoints",
+    "usage_contributions",
+    "violations",
+];
+
+/// Expected table inventory for `CURRENT_SCHEMA_VERSION` (sorted ascending).
+pub const EXPECTED_TABLES: [&str; 11] = [
+    "events",
+    "integrations",
+    "outbox",
+    "policies",
+    "policy_overrides",
+    "quotas",
+    "session_projection",
     "sessions",
     "usage_checkpoints",
     "usage_contributions",
@@ -148,8 +166,8 @@ impl Store {
     /// - Validates `PRAGMA user_version` and schema cleanliness before mutating `journal_mode`.
     /// - Enforces `foreign_keys = ON`, `journal_mode = WAL`, `synchronous = FULL`, and a bounded
     ///   `busy_timeout`.
-    /// - Transactionally applies `0001_initial.sql` and sets `user_version = 1` on a clean
-    ///   `user_version = 0` database.
+    /// - Applies each ordered migration transactionally through schema version 2.
+    ///   Existing v1 data is preserved and its projection checkpoints are backfilled.
     pub fn open(path: impl AsRef<Path>) -> Result<Self, StoreError> {
         let path_ref = path.as_ref();
         validate_file_path(path_ref)?;
@@ -168,13 +186,16 @@ impl Store {
                 return Err(StoreError::NonEmptyUnversionedDatabase { object_count });
             }
         } else {
-            verify_expected_schema(&conn)?;
+            verify_schema_for_version(&conn, initial_version as u32)?;
         }
 
         configure_and_verify_connection(&conn)?;
 
-        if initial_version == 0 {
-            apply_migration_sql(&mut conn, INITIAL_MIGRATION_SQL, CURRENT_SCHEMA_VERSION)?;
+        if initial_version < 1 {
+            apply_migration_sql(&mut conn, INITIAL_MIGRATION_SQL, 1)?;
+        }
+        if initial_version < 2 {
+            apply_migration_sql(&mut conn, PROJECTION_MIGRATION_SQL, 2)?;
         }
 
         verify_expected_schema(&conn)?;
@@ -309,15 +330,21 @@ fn apply_migration_sql(
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
 
     let current_version = read_user_version(&tx)?;
-    if current_version == 0 {
+    if current_version == 0 && target_version == 1 {
         let object_count = count_user_schema_objects(&tx)?;
         if object_count > 0 {
             return Err(StoreError::NonEmptyUnversionedDatabase { object_count });
         }
         tx.pragma_update(None, "user_version", target_version)?;
         tx.execute_batch(migration_sql)?;
+        verify_schema_for_version(&tx, target_version)?;
+    } else if current_version > 0 && current_version + 1 == i64::from(target_version) {
+        verify_schema_for_version(&tx, current_version as u32)?;
+        tx.pragma_update(None, "user_version", target_version)?;
+        tx.execute_batch(migration_sql)?;
+        verify_schema_for_version(&tx, target_version)?;
     } else if current_version == i64::from(target_version) {
-        verify_expected_schema(&tx)?;
+        verify_schema_for_version(&tx, target_version)?;
     } else {
         return Err(StoreError::UnsupportedSchemaVersion(current_version));
     }
@@ -327,7 +354,17 @@ fn apply_migration_sql(
 }
 
 fn verify_expected_schema(conn: &Connection) -> Result<(), StoreError> {
-    for &table in &EXPECTED_TABLES {
+    verify_schema_for_version(conn, CURRENT_SCHEMA_VERSION)
+}
+
+fn verify_schema_for_version(conn: &Connection, version: u32) -> Result<(), StoreError> {
+    let expected_tables: &[&str] = match version {
+        1 => &V1_TABLES,
+        2 => &EXPECTED_TABLES,
+        _ => return Err(StoreError::UnsupportedSchemaVersion(i64::from(version))),
+    };
+
+    for &table in expected_tables {
         let exists: i64 = conn.query_row(
             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?1",
             [table],
@@ -374,7 +411,7 @@ mod tests {
                 INITIAL_MIGRATION_SQL
             );
 
-            let err = apply_migration_sql(&mut conn, &broken_migration, CURRENT_SCHEMA_VERSION)
+            let err = apply_migration_sql(&mut conn, &broken_migration, 1)
                 .expect_err("broken migration SQL must fail");
             assert!(matches!(err, StoreError::Sqlite(_)));
 

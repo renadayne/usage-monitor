@@ -1,5 +1,6 @@
 //! Durable SQLite storage bootstrap for Agent Usage Monitor.
 
+pub mod ingest;
 pub mod query;
 pub mod store;
 

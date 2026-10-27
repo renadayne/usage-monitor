@@ -359,6 +359,10 @@ fn validate_opt_id(field: &'static str, value: Option<&str>) -> Result<(), Valid
     Ok(())
 }
 
+pub fn validate_identifier(field: &'static str, value: &str) -> Result<(), ValidationError> {
+    validate_id(field, value)
+}
+
 fn validate_id(field: &'static str, value: &str) -> Result<(), ValidationError> {
     if value.is_empty() {
         return Err(ValidationError::InvalidIdentifier {
