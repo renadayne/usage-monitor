@@ -3,7 +3,7 @@
 ## Current Implementation Status
 
 The Rust workspace currently includes:
-- Versioned SQLite migrations through `user_version = 4`, preserving older sessions and adding phase-bound inference contexts, model checkpoints and immutable usage evidence.
+- Versioned SQLite migrations through `user_version = 6`, preserving older sessions and adding phase-bound inference contexts, model checkpoints, usage/quota evidence and indexed policy exceptions.
 - Connection configuration and verification (`foreign_keys = ON`, `journal_mode = WAL`, `synchronous = FULL`, bounded `busy_timeout`).
 - Safe refusal of unknown future `user_version` databases and non-empty unversioned databases prior to journal or schema mutation.
 - A strict metadata DTO crate (`normalized-schema`) with a separate typed `UsageReport` envelope. Arbitrary content and quota fields are rejected. Served-model claims require direct response evidence, an inference ID and phase epoch.
@@ -30,7 +30,7 @@ The `aum-observer` executable reads only the explicitly supplied app-owned confi
 
 The React desktop frontend has a dashboard, session timeline/phase control, policy editor, history export controls and a Codex setup preview screen. Browser mode starts without telemetry; synthetic demo data requires an explicit choice and remains separate from native state. The Windows Tauri shell connects these views to the local store and owns the loopback collector. Closing the window hides it to the tray; tray Quit stops the listener/writer. Single-instance handling brings the existing window forward. No provider connection is inferred from receiver readiness.
 
-Quota ingestion, OTLP endpoints, persisted override/notification wiring and actual provider setup writes are **not implemented yet**. Native lifecycle and real Codex compatibility on the user's machine remain unverified.
+The collector supports local quota ingestion and persisted policy exceptions. OTLP endpoints, persisted notification wiring and actual provider setup writes are **not implemented yet**. Native lifecycle and real Codex compatibility on the user's machine remain unverified.
 
 ## Windows desktop build
 
@@ -52,6 +52,8 @@ The first complete Windows executable build passed in [PR #13 CI](https://github
 On application startup, app-owned data lives under `%APPDATA%/dev.usage-monitor.desktop`: SQLite plus `runtime/codex-vscode.json` and `runtime/codex-desktop.json`. Initial profiles are written atomically without overwriting existing files. Tokens persist across restarts; the surfaces start with separate unverified account bindings. Invalid/edited profiles fail validation and are preserved. No provider config or credential location is scanned. The setup screen shows helper/profile locations without exposing token contents. Review absolute helper/profile paths and shell quoting when preparing a hook command; this version previews configuration and does not apply or trust it.
 
 ## Frontend preview
+
+The pure Claude Code parser handles lifecycle hooks, `PostModelSwitch.to_model` and status-line `model.id` as session selection metadata. It parses five-hour/seven-day rate-limit windows independently; context-window percentages and estimated session costs are excluded. Reset times are converted from Unix seconds, and missing reset identity prevents merging separate deliveries. This is a synthetic parser/collector pipeline; there is no Claude receiver/helper or setup activation yet. Contracts: [Claude hooks](https://code.claude.com/docs/en/hooks), [status-line data](https://code.claude.com/docs/en/statusline).
 
 Native session detail supports explicit policy exceptions scoped to a winning policy, session and current phase epoch. Exceptions require a reason, exact replacement model IDs and a duration of 1 second to 24 hours. Creating a replacement atomically revokes its predecessor; revocation and expired history are retained. Expiry is enforced during evaluation without a scheduler, and cached UI decisions become indeterminate at the exception boundary. Clock anomalies prevent new exceptions. Exceptions change local advisory rules and do not supply served-model evidence or provider control.
 
