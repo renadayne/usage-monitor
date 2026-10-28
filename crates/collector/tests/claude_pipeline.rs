@@ -26,6 +26,9 @@ fn independent_statusline_quotas_flow_to_account_view_without_promoting_selected
     for (index,raw) in [r#"{"session_id":"session-a","model":{"id":"model-a"},"rate_limits":{"five_hour":{"used_percentage":12,"resets_at":1793152800}}}"#,r#"{"session_id":"session-b","model":{"id":"model-b"},"rate_limits":{"seven_day":{"used_percentage":4,"resets_at":1793757600}}}"#].into_iter().enumerate() {
         context.event_id=format!("delivery-{index}");
         let parsed=claude::normalize_statusline(raw,&context).unwrap();
+        let mut start_context=context.clone();start_context.event_id=format!("start-{index}");
+        let start=claude::normalize_hook(&serde_json::json!({"session_id":parsed.event.source_session_id,"hook_event_name":"SessionStart"}).to_string(),&start_context).unwrap();
+        store.ingest(&start).unwrap();
         let session=store.ingest(&parsed.event).unwrap().session_id;
         if first.is_none(){first=Some(session.clone());}
         store.observe_quotas(&QuotaObservation{schema_version:1,event_id:context.event_id.clone(),integration_id:context.integration_id.clone(),account_key:context.account_key.clone(),provider:Provider::ClaudeCode,surface:"claude_code_cli".into(),source:"claude.statusline".into(),source_event_id:None,source_sequence:None,confidence:Confidence::Direct,observed_at:context.observed_at.clone(),received_at:context.received_at.clone(),snapshots:parsed.quotas}).unwrap();

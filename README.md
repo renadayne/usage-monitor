@@ -3,7 +3,7 @@
 ## Current Implementation Status
 
 The Rust workspace currently includes:
-- Versioned SQLite migrations through `user_version = 4`, preserving older sessions and adding phase-bound inference contexts, model checkpoints and immutable usage evidence.
+- Versioned SQLite migrations through `user_version = 6`, preserving older sessions and adding phase-bound inference contexts, model checkpoints, usage/quota evidence and indexed policy exceptions.
 - Connection configuration and verification (`foreign_keys = ON`, `journal_mode = WAL`, `synchronous = FULL`, bounded `busy_timeout`).
 - Safe refusal of unknown future `user_version` databases and non-empty unversioned databases prior to journal or schema mutation.
 - A strict metadata DTO crate (`normalized-schema`) with a separate typed `UsageReport` envelope. Arbitrary content and quota fields are rejected. Served-model claims require direct response evidence, an inference ID and phase epoch.
@@ -30,7 +30,7 @@ The `aum-observer` executable reads only the explicitly supplied app-owned confi
 
 The React desktop frontend has a dashboard, session timeline/phase control, policy editor, history export controls and a Codex setup preview screen. Browser mode starts without telemetry; synthetic demo data requires an explicit choice and remains separate from native state. The Windows Tauri shell connects these views to the local store and owns the loopback collector. Closing the window hides it to the tray; tray Quit stops the listener/writer. Single-instance handling brings the existing window forward. No provider connection is inferred from receiver readiness.
 
-Quota ingestion, OTLP endpoints, persisted override/notification wiring and actual provider setup writes are **not implemented yet**. Native lifecycle and real Codex compatibility on the user's machine remain unverified.
+The collector supports local quota ingestion and persisted policy exceptions. OTLP endpoints, persisted notification wiring and actual provider setup writes are **not implemented yet**. Native lifecycle and real Codex compatibility on the user's machine remain unverified.
 
 ## Windows desktop build
 
