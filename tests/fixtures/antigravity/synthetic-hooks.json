@@ -1,0 +1,6 @@
+{
+  "fixtureKind": "synthetic-only", "conversationId": "synthetic-session",
+  "modelName": "synthetic-model", "invocationNum": 3, "initialNumSteps": 10,
+  "workspacePaths": ["PRIVATE_WORKSPACE"], "transcriptPath": "PRIVATE_TRANSCRIPT",
+  "injectSteps": [{"userMessage":"PRIVATE_PROMPT"}], "terminationBehavior":"terminate"
+}

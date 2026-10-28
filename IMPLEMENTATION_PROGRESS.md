@@ -23,6 +23,9 @@ Each accepted step is reviewed, checked and committed independently, then pushed
 | 6d / T08 | Expire cached UI evidence and cache native builds | Accepted | All 5 CI jobs passed; merged via PR #14; cached positive decisions downgrade at expiry and clock health stays explicit; native asset rebuild tracking |
 | 7a / T02 | Independent account quota storage and views | Accepted | All 5 CI jobs passed; merged via PR #15; schema v5, atomic replay/rollback and shared account views covered by synthetic Rust tests; 430px browser QA |
 | 7b / T03 | Audited expiring session/epoch policy exceptions | Accepted | All 5 CI jobs passed; merged via PR #16; atomic replacement/revocation, reason/TTL, clock guard and cached UI expiry |
-| 8a / T07 | Pure Claude Code hooks/status-line metadata adapter | Review/CI pending | Selection-only models, independent nullable five-hour/seven-day quota snapshots and privacy fixtures; no real transport/configuration |
+| 8a / T07 | Pure Claude Code hooks/status-line metadata adapter | Accepted | All 5 CI jobs passed; PR #17; selection-only models, nullable quota windows and privacy fixtures; no real transport/configuration |
+| 8b / T07 | Pure Antigravity hooks and Copilot OTLP span parsing | Review/CI pending | Explicit conversation binding, conservative model metadata and distinct leaf/parent usage series; synthetic fixtures only |
+
+Native Windows execution was attempted using the verified PR #16 artifact (SHA256 matched GitHub). Windows Application Control blocked startup before an application process/window could be verified. Browser demo remains available; no actual Codex hooks have been activated and no Windows policy was changed.
 
 Tooling is provisioned locally under ignored `.tools` where required. No provider configuration changes or paid model calls are part of these core steps.
